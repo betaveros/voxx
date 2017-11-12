@@ -33,8 +33,9 @@ from kivy.graphics import Color, Ellipse, Rectangle, Line
 from kivy.graphics import PushMatrix, PopMatrix, Translate, Scale, Rotate
 
 import chords_gen
+import demo_chords
 
-from random import randint
+import random
 import aubio
 
 NUM_CHANNELS = 2
@@ -268,10 +269,10 @@ class GraphDisplay(InstructionGroup):
         self.range = in_range
         self.height = height
         self.points = np.zeros(num_pts*2, dtype = np.int)
-        self.points[::2] = np.arange(num_pts) * 2
+        self.points[::2] = np.arange(num_pts) * 4
         self.idx = 0
         self.mode = 'scroll'
-        self.line = Line( width = 1 )
+        self.line = Line( width = 1.5 )
         self.add(PushMatrix())
         self.add(Translate(*pos))
         self.add(Color(*color))
@@ -320,11 +321,11 @@ class MainWidget1(BaseWidget) :
         self.mixer.add(self.io_buffer)
 
         self.synth = Synth('data/FluidR3_GM.sf2')
-        self.synth.program(1, 0, 8)
+        self.synth.program(1, 0, 24)
         self.synth_note = 0
         self.last_note = 60 # always nonzero, user's note won't be too far away
         self.max_jump = 10
-        self.is_snapping = True
+        self.snap_chance_index = 2
         self.is_random = False
         self.quantization_unit_index = 0
         self.mixer.add(self.synth)
@@ -348,10 +349,10 @@ class MainWidget1(BaseWidget) :
         self.mic_meter = MeterDisplay((50, 25),  150, (-96, 0), (.1,.9,.3))
         self.mic_graph = GraphDisplay((110, 25), 150, 300, (-96, 0), (.1,.9,.3))
 
-        self.pitch_meter = MeterDisplay((50, 200), 150, (30, 90), (.9,.1,.3))
-        self.pitch_graph = GraphDisplay((110, 200), 150, 300, (30, 90), (.9,.1,.3))
+        self.pitch_meter = MeterDisplay((50, 200), 300, (30, 90), (.9,.1,.3))
+        self.pitch_graph = GraphDisplay((110, 200), 300, 300, (30, 90), (.9,.1,.3))
 
-        self.output_pitch_graph = GraphDisplay((110, 200), 150, 300, (30, 90), (.8,.9,1.0))
+        self.output_pitch_graph = GraphDisplay((110, 200), 300, 300, (30, 90), (.8,.9,1.0))
 
         self.canvas.add(self.mic_meter)
         self.canvas.add(self.mic_graph)
@@ -363,7 +364,8 @@ class MainWidget1(BaseWidget) :
 
         self.onset_disp = None
         self.cur_pitch = 0
-        self.chord_seq = chords_gen.chord_generater([1, 3, 6, 4, 2, 7], ['e', 'minor'], 240)[3]
+        # self.chord_seq = chords_gen.chord_generater([1, 3, 6, 4, 2, 7], ['e', 'minor'], 240)[3]
+        self.chord_seq = demo_chords.which
         self.next_template = make_snap_template(self.chord_seq[0][1:])
 
         self.recording_idx = 0
@@ -374,9 +376,22 @@ class MainWidget1(BaseWidget) :
 
         self.audio.set_generator(self.mixer)
         self.next_note(self.sched.get_tick(), (0, 0)) # specifies what was just voted on and should start playing
+        self.next_note_play(self.sched.get_tick(), (demo_chords.baseline, 0))
+        self.next_note_play(self.sched.get_tick(), (demo_chords.guitar2, 0))
+        self.next_note_play(self.sched.get_tick(), (demo_chords.guitar3, 0))
+
+    def get_snap_chance(self):
+        return self.snap_chance_index / 2.0
 
     def get_quantization_unit(self):
         return (40, 60, 80, 120, 240)[self.quantization_unit_index]
+
+    def next_note_play(self, tick, (melody, i)):
+
+        CHORD_CHANNEL = 1
+        self.synth.noteoff(CHORD_CHANNEL, melody[(i - 1)%len(melody)][1])
+        self.synth.noteon(CHORD_CHANNEL, melody[i][1], 100)
+        self.sched.post_at_tick(tick + melody[i][0], self.next_note_play, (melody, (i + 1) % (len(melody))))
 
     def next_note(self, tick, (ci, ct)):
         print('next note')
@@ -392,13 +407,6 @@ class MainWidget1(BaseWidget) :
         else:
             nci, nct = (ci + 1)%len(self.chord_seq), 0
             ticks_to_next = cur_duration
-
-        CHORD_CHANNEL = 1
-        if ct == 0: # if so then start playing this
-            for note in self.chord_seq[(ci - 1)%len(self.chord_seq)][1:]:
-                self.synth.noteoff(CHORD_CHANNEL, note)
-            for note in self.chord_seq[ci][1:]:
-                self.synth.noteon(CHORD_CHANNEL, note, 100)
 
         if self.note_votes:
             maj_note = max(self.note_votes.items(), key=lambda x: x[1])[0]
@@ -428,7 +436,7 @@ class MainWidget1(BaseWidget) :
         self.info.text += "pitch: %.1f\n" % self.cur_pitch
         self.info.text += "j/k: max jump: %d\n" % self.max_jump
         self.info.text += "q: quantization: %d\n" % self.get_quantization_unit()
-        self.info.text += "s: snap: %s\n" % ("OFF", "ON")[self.is_snapping]
+        self.info.text += "s: snap: %.2f\n" % self.get_snap_chance()
         self.info.text += "z: random input: %s\n" % ("OFF", "ON")[self.is_random]
 
         self.info.text += "c: analyzing channel:%d\n" % self.channel_select
@@ -456,13 +464,13 @@ class MainWidget1(BaseWidget) :
         # pitch detection: get pitch and display on meter and graph
         self.cur_pitch = self.pitch.write(mono)
         if self.is_random:
-            self.cur_pitch = randint(40, 80)
+            self.cur_pitch = random.randint(40, 80)
         self.pitch_meter.set(self.cur_pitch)
         self.pitch_graph.add_point(self.cur_pitch)
 
         pitch = self.cur_pitch
         pitch = push_near(self.last_note, pitch, self.max_jump)
-        if self.is_snapping:
+        if random.random() < self.get_snap_chance():
             cur_note = snap_to_template(pitch, self.next_template)
         else:
             cur_note = int(round(pitch))
@@ -488,7 +496,7 @@ class MainWidget1(BaseWidget) :
 
     def on_onset(self, msg):
         if msg == 'onset':
-            self.onset_disp = OnsetDisplay((randint(650, 750), 100))
+            self.onset_disp = OnsetDisplay((random.randint(650, 750), 100))
             self.anim_group.add(self.onset_disp)
         elif self.onset_disp:
             self.onset_disp.set_type(msg)
@@ -516,7 +524,7 @@ class MainWidget1(BaseWidget) :
 
         # toggle snap
         if keycode[1] == 's':
-            self.is_snapping = not self.is_snapping
+            self.snap_chance_index = (self.snap_chance_index + 1) % 3
 
         # quantization
         if keycode[1] == 'q':
