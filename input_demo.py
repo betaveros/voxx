@@ -351,10 +351,13 @@ class MainWidget1(BaseWidget) :
         self.pitch_meter = MeterDisplay((50, 200), 150, (30, 90), (.9,.1,.3))
         self.pitch_graph = GraphDisplay((110, 200), 150, 300, (30, 90), (.9,.1,.3))
 
+        self.output_pitch_graph = GraphDisplay((110, 200), 150, 300, (30, 90), (.8,.9,1.0))
+
         self.canvas.add(self.mic_meter)
         self.canvas.add(self.mic_graph)
         self.canvas.add(self.pitch_meter)
         self.canvas.add(self.pitch_graph)
+        self.canvas.add(self.output_pitch_graph)
 
         self.canvas.add(self.anim_group)
 
@@ -466,6 +469,8 @@ class MainWidget1(BaseWidget) :
         self.note_votes[cur_note] += len(frames)
         # print(cur_note)
         # cur_note = 60
+
+        self.output_pitch_graph.add_point(self.synth_note)
 
         # onset detection and classification
         self.onset_detector.write(mono)
