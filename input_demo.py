@@ -32,6 +32,8 @@ from kivy.graphics.instructions import InstructionGroup
 from kivy.graphics import Color, Ellipse, Rectangle, Line
 from kivy.graphics import PushMatrix, PopMatrix, Translate, Scale, Rotate
 
+import chords_gen
+
 from random import randint
 import aubio
 
@@ -289,21 +291,25 @@ class GraphDisplay(InstructionGroup):
 
         self.line.points = self.points.tolist()
 
-snap = (0, 2, 4, 5, 7, 9, 11, 12)
+# snap = (0, 2, 4, 5, 7, 9, 11, 12)
 # snap = (0, 2, 4, 7, 9, 12)
 # snap = (0, 4, 7, 12)
 
-def snap_to_chord(pitch):
+def make_snap_template(chord):
+    template = list(sorted(c % 12 for c in chord))
+    return [template[-1] - 12] + template + [template[0] + 12]
+
+def snap_to_template(pitch, template):
     if pitch == 0: return 0
     pitch = int(round(pitch))
     octave = 12 * (pitch // 12)
-    return octave + min(snap, key=lambda x: abs(x - (pitch - octave)))
+    return octave + min(template, key=lambda x: abs(x - (pitch - octave)))
 
-def snap_to_chord_near(anchor, pitch):
+def snap_to_template_near(anchor, pitch, template):
     if pitch == 0: return 0
-    while pitch > anchor + 10: pitch -= 12
-    while pitch < anchor - 10: pitch += 12
-    return snap_to_chord(pitch)
+    while pitch > anchor + 6: pitch -= 12
+    while pitch < anchor - 6: pitch += 12
+    return snap_to_template(pitch, template)
 
 class MainWidget1(BaseWidget) :
     def __init__(self):
@@ -314,7 +320,8 @@ class MainWidget1(BaseWidget) :
         self.io_buffer = IOBuffer()
         self.mixer.add(self.io_buffer)
 
-        self.synth = Synth('FluidR3_GM.sf2')
+        self.synth = Synth('data/FluidR3_GM.sf2')
+        self.synth.program(1, 0, 8)
         self.synth_note = 0
         self.last_note = 60 # always nonzero, user's note won't be too far away
         self.mixer.add(self.synth)
@@ -350,6 +357,8 @@ class MainWidget1(BaseWidget) :
 
         self.onset_disp = None
         self.cur_pitch = 0
+        self.chord_seq = chords_gen.chord_generater([1, 3, 6, 4, 2, 7], ['e', 'minor'], 240)[3]
+        self.next_template = make_snap_template(self.chord_seq[0][1:])
 
         self.recording_idx = 0
 
@@ -358,15 +367,31 @@ class MainWidget1(BaseWidget) :
         self.mixer.add(self.sched)
 
         self.audio.set_generator(self.mixer)
-        self.next_note(self.sched.get_tick(), None)
+        self.next_note(self.sched.get_tick(), (0, 0)) # specifies what was just voted on and should start playing
 
-    def next_note(self, tick, msg):
+    def next_note(self, tick, (ci, ct)):
         print('next note')
+
+        TICK_UNIT = 120
+
+        # vote on this next:
+        if ct + TICK_UNIT < self.chord_seq[ci][0]:
+            nci, nct = ci, ct + TICK_UNIT
+        else:
+            nci, nct = (ci + 1)%len(self.chord_seq), 0
+
+        CHORD_CHANNEL = 1
+        if ct == 0: # if so then start playing this
+            for note in self.chord_seq[(ci - 1)%len(self.chord_seq)][1:]:
+                self.synth.noteoff(CHORD_CHANNEL, note)
+            for note in self.chord_seq[ci][1:]:
+                self.synth.noteon(CHORD_CHANNEL, note, 100)
+
         if self.note_votes:
             maj_note = max(self.note_votes.items(), key=lambda x: x[1])[0]
-            print('=' * 100)
-            print('MAJ NOTE', maj_note)
-            print('=' * 100)
+            # print('=' * 100)
+            # print('MAJ NOTE', maj_note)
+            # print('=' * 100)
             if maj_note != self.synth_note:
                 CHANNEL = 0
                 self.synth.noteoff(CHANNEL, int(self.synth_note))
@@ -376,7 +401,10 @@ class MainWidget1(BaseWidget) :
                     self.synth.noteon(CHANNEL, int(self.synth_note), 100)
             self.note_votes = Counter()
 
-        self.sched.post_at_tick(tick + 80, self.next_note, msg)
+        self.next_template = make_snap_template(self.chord_seq[nci][1:])
+
+        self.sched.post_at_tick(tick + TICK_UNIT, self.next_note, (nci, nct))
+
     def on_update(self) :
         self.audio.on_update()
         self.anim_group.on_update()
@@ -410,10 +438,13 @@ class MainWidget1(BaseWidget) :
 
         # pitch detection: get pitch and display on meter and graph
         self.cur_pitch = self.pitch.write(mono)
+        self.cur_pitch = randint(40, 80)
         self.pitch_meter.set(self.cur_pitch)
         self.pitch_graph.add_point(self.cur_pitch)
 
-        cur_note = snap_to_chord_near(self.last_note, int(round(self.cur_pitch)))
+        cur_note = snap_to_template_near(
+                self.last_note, int(round(self.cur_pitch)),
+                self.next_template)
         self.note_votes[cur_note] += len(frames)
         # print(cur_note)
         # cur_note = 60

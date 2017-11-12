@@ -135,13 +135,5 @@ class MainWidget(BaseWidget) :
         self.label.text += 'up/down: change speed\n'        
 
 
-run(MainWidget)
-
-
-
-
-
-
-
-
-
+if __name__ == "__main__":
+    run(MainWidget)
