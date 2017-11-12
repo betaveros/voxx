@@ -301,15 +301,14 @@ def make_snap_template(chord):
 
 def snap_to_template(pitch, template):
     if pitch == 0: return 0
-    pitch = int(round(pitch))
     octave = 12 * (pitch // 12)
     return octave + min(template, key=lambda x: abs(x - (pitch - octave)))
 
-def snap_to_template_near(anchor, pitch, template, max_jump):
+def push_near(anchor, pitch, max_jump):
     if pitch == 0: return 0
     while pitch > anchor + max_jump: pitch -= 12
     while pitch < anchor - max_jump: pitch += 12
-    return snap_to_template(pitch, template)
+    return pitch
 
 class MainWidget1(BaseWidget) :
     def __init__(self):
@@ -325,6 +324,9 @@ class MainWidget1(BaseWidget) :
         self.synth_note = 0
         self.last_note = 60 # always nonzero, user's note won't be too far away
         self.max_jump = 10
+        self.is_snapping = True
+        self.is_random = False
+        self.quantization_unit_index = 0
         self.mixer.add(self.synth)
 
         self.note_votes = Counter()
@@ -370,16 +372,23 @@ class MainWidget1(BaseWidget) :
         self.audio.set_generator(self.mixer)
         self.next_note(self.sched.get_tick(), (0, 0)) # specifies what was just voted on and should start playing
 
+    def get_quantization_unit(self):
+        return (40, 60, 80, 120, 240)[self.quantization_unit_index]
+
     def next_note(self, tick, (ci, ct)):
         print('next note')
 
-        TICK_UNIT = 120
+        TICK_UNIT = self.get_quantization_unit()
 
+
+        cur_duration = self.chord_seq[ci][0]
         # vote on this next:
-        if ct + TICK_UNIT < self.chord_seq[ci][0]:
+        if ct + TICK_UNIT < cur_duration:
             nci, nct = ci, ct + TICK_UNIT
+            ticks_to_next = TICK_UNIT
         else:
             nci, nct = (ci + 1)%len(self.chord_seq), 0
+            ticks_to_next = cur_duration
 
         CHORD_CHANNEL = 1
         if ct == 0: # if so then start playing this
@@ -414,7 +423,10 @@ class MainWidget1(BaseWidget) :
         self.info.text += 'load:%.2f\n' % self.audio.get_cpu_load()
         self.info.text += 'gain:%.2f\n' % self.mixer.get_gain()
         self.info.text += "pitch: %.1f\n" % self.cur_pitch
-        self.info.text += "max jump: %d\n" % self.max_jump
+        self.info.text += "j/k: max jump: %d\n" % self.max_jump
+        self.info.text += "q: quantization: %d\n" % self.get_quantization_unit()
+        self.info.text += "s: snap: %s\n" % ("OFF", "ON")[self.is_snapping]
+        self.info.text += "z: random input: %s\n" % ("OFF", "ON")[self.is_random]
 
         self.info.text += "c: analyzing channel:%d\n" % self.channel_select
         self.info.text += "r: toggle recording: %s\n" % ("OFF", "ON")[self.recording]
@@ -440,14 +452,17 @@ class MainWidget1(BaseWidget) :
 
         # pitch detection: get pitch and display on meter and graph
         self.cur_pitch = self.pitch.write(mono)
-        self.cur_pitch = randint(40, 80)
+        if self.is_random:
+            self.cur_pitch = randint(40, 80)
         self.pitch_meter.set(self.cur_pitch)
         self.pitch_graph.add_point(self.cur_pitch)
 
-        cur_note = snap_to_template_near(
-                self.last_note, int(round(self.cur_pitch)),
-                self.next_template,
-                self.max_jump)
+        pitch = self.cur_pitch
+        pitch = push_near(self.last_note, pitch, self.max_jump)
+        if self.is_snapping:
+            cur_note = snap_to_template(pitch, self.next_template)
+        else:
+            cur_note = int(round(pitch))
         self.note_votes[cur_note] += len(frames)
         # print(cur_note)
         # cur_note = 60
@@ -494,9 +509,23 @@ class MainWidget1(BaseWidget) :
         if keycode[1] == 'c' and NUM_CHANNELS == 2:
             self.channel_select = 1 - self.channel_select
 
+        # toggle snap
+        if keycode[1] == 's':
+            self.is_snapping = not self.is_snapping
+
+        # quantization
+        if keycode[1] == 'q':
+            self.quantization_unit_index = (self.quantization_unit_index + 1)
+
+        # toggle random input
+        if keycode[1] == 'z':
+            self.is_random = not self.is_random
+
         # toggle jump
-        if keycode[1] == 'j':
-            self.max_jump = 6 + ((self.max_jump + 2) - 6) % 12
+        if keycode[1] == 'j' and self.max_jump > 7:
+            self.max_jump -= 1
+        if keycode[1] == 'k':
+            self.max_jump += 1
 
         # adjust mixer gain
         gf = lookup(keycode[1], ('up', 'down'), (1.1, 1/1.1))
