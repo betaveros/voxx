@@ -305,10 +305,10 @@ def snap_to_template(pitch, template):
     octave = 12 * (pitch // 12)
     return octave + min(template, key=lambda x: abs(x - (pitch - octave)))
 
-def snap_to_template_near(anchor, pitch, template):
+def snap_to_template_near(anchor, pitch, template, max_jump):
     if pitch == 0: return 0
-    while pitch > anchor + 6: pitch -= 12
-    while pitch < anchor - 6: pitch += 12
+    while pitch > anchor + max_jump: pitch -= 12
+    while pitch < anchor - max_jump: pitch += 12
     return snap_to_template(pitch, template)
 
 class MainWidget1(BaseWidget) :
@@ -324,6 +324,7 @@ class MainWidget1(BaseWidget) :
         self.synth.program(1, 0, 8)
         self.synth_note = 0
         self.last_note = 60 # always nonzero, user's note won't be too far away
+        self.max_jump = 10
         self.mixer.add(self.synth)
 
         self.note_votes = Counter()
@@ -413,6 +414,7 @@ class MainWidget1(BaseWidget) :
         self.info.text += 'load:%.2f\n' % self.audio.get_cpu_load()
         self.info.text += 'gain:%.2f\n' % self.mixer.get_gain()
         self.info.text += "pitch: %.1f\n" % self.cur_pitch
+        self.info.text += "max jump: %d\n" % self.max_jump
 
         self.info.text += "c: analyzing channel:%d\n" % self.channel_select
         self.info.text += "r: toggle recording: %s\n" % ("OFF", "ON")[self.recording]
@@ -444,7 +446,8 @@ class MainWidget1(BaseWidget) :
 
         cur_note = snap_to_template_near(
                 self.last_note, int(round(self.cur_pitch)),
-                self.next_template)
+                self.next_template,
+                self.max_jump)
         self.note_votes[cur_note] += len(frames)
         # print(cur_note)
         # cur_note = 60
@@ -490,6 +493,10 @@ class MainWidget1(BaseWidget) :
 
         if keycode[1] == 'c' and NUM_CHANNELS == 2:
             self.channel_select = 1 - self.channel_select
+
+        # toggle jump
+        if keycode[1] == 'j':
+            self.max_jump = 6 + ((self.max_jump + 2) - 6) % 12
 
         # adjust mixer gain
         gf = lookup(keycode[1], ('up', 'down'), (1.1, 1/1.1))
