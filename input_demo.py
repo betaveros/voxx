@@ -315,7 +315,8 @@ class MainWidget1(BaseWidget) :
     def __init__(self):
         super(MainWidget1, self).__init__()
 
-        self.audio = Audio(NUM_CHANNELS, input_func=self.receive_audio)
+        self.writer = AudioWriter('data') # for debugging audio output
+        self.audio = Audio(NUM_CHANNELS, self.writer.add_audio, input_func=self.receive_audio)
         self.mixer = Mixer()
         self.io_buffer = IOBuffer()
         self.mixer.add(self.io_buffer)
@@ -325,9 +326,10 @@ class MainWidget1(BaseWidget) :
         self.synth_note = 0
         self.last_note = 60 # always nonzero, user's note won't be too far away
         self.max_jump = 10
+        self.pitch_offset_index = 2
         self.snap_chance_index = 2
         self.is_random = False
-        self.quantization_unit_index = 0
+        self.quantization_unit_index = 3
         self.mixer.add(self.synth)
 
         self.note_votes = Counter()
@@ -379,6 +381,9 @@ class MainWidget1(BaseWidget) :
         self.next_note_play(self.sched.get_tick(), (demo_chords.baseline, 0))
         self.next_note_play(self.sched.get_tick(), (demo_chords.guitar2, 0))
         self.next_note_play(self.sched.get_tick(), (demo_chords.guitar3, 0))
+
+    def get_pitch_offset(self):
+        return (-24, -12, 0, 12, 24)[self.pitch_offset_index]
 
     def get_snap_chance(self):
         return self.snap_chance_index / 2.0
@@ -433,10 +438,10 @@ class MainWidget1(BaseWidget) :
         self.info.text = 'fps:%d\n' % kivyClock.get_fps()
         self.info.text += 'load:%.2f\n' % self.audio.get_cpu_load()
         self.info.text += 'gain:%.2f\n' % self.mixer.get_gain()
-        self.info.text += "pitch: %.1f\n" % self.cur_pitch
+        self.info.text += "pitch: %.1f (o: %+d)\n" % (self.cur_pitch, self.get_pitch_offset())
         self.info.text += "j/k: max jump: %d\n" % self.max_jump
-        self.info.text += "q: quantization: %d\n" % self.get_quantization_unit()
-        self.info.text += "s: snap: %.2f\n" % self.get_snap_chance()
+        self.info.text += "q: quantization: %d" % self.get_quantization_unit()
+        self.info.text += " / s: snap: %.2f\n" % self.get_snap_chance()
         self.info.text += "z: random input: %s\n" % ("OFF", "ON")[self.is_random]
 
         self.info.text += "c: analyzing channel:%d\n" % self.channel_select
@@ -469,11 +474,15 @@ class MainWidget1(BaseWidget) :
         self.pitch_graph.add_point(self.cur_pitch)
 
         pitch = self.cur_pitch
-        pitch = push_near(self.last_note, pitch, self.max_jump)
-        if random.random() < self.get_snap_chance():
-            cur_note = snap_to_template(pitch, self.next_template)
+        if pitch:
+            pitch += self.get_pitch_offset()
+            pitch = push_near(self.last_note, pitch, self.max_jump)
+            if random.random() < self.get_snap_chance():
+                cur_note = snap_to_template(pitch, self.next_template)
+            else:
+                cur_note = int(round(pitch))
         else:
-            cur_note = int(round(pitch))
+            cur_note = 0
         self.note_votes[cur_note] += len(frames)
         # print(cur_note)
         # cur_note = 60
@@ -510,6 +519,9 @@ class MainWidget1(BaseWidget) :
                 self.recording_idx = self.recording_idx + 1
             self.recording = not self.recording
 
+        if keycode[1] == 'x':
+            self.writer.toggle()
+
         # toggle monitoring
         if keycode[1] == 'm':
             self.monitor = not self.monitor
@@ -526,9 +538,13 @@ class MainWidget1(BaseWidget) :
         if keycode[1] == 's':
             self.snap_chance_index = (self.snap_chance_index + 1) % 3
 
+        # toggle octave offset
+        if keycode[1] == 'o':
+            self.pitch_offset_index = (self.pitch_offset_index + 1) % 5
+
         # quantization
         if keycode[1] == 'q':
-            self.quantization_unit_index = (self.quantization_unit_index + 1)
+            self.quantization_unit_index = (self.quantization_unit_index + 1) % 5
 
         # toggle random input
         if keycode[1] == 'z':
