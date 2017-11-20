@@ -36,49 +36,11 @@ import chords_gen
 import demo_chords
 
 import random
-import aubio
+from pitch_detector import PitchDetector
 
 NUM_CHANNELS = 2
 
-class PitchDetector(object):
-    def __init__(self):
-        super(PitchDetector, self).__init__()
-        # number of frames to present to the pitch detector each time
-        self.buffer_size = 1024
-
-        # set up the pitch detector
-        self.pitch_o = aubio.pitch("default", 2048, self.buffer_size, Audio.sample_rate)
-        self.pitch_o.set_tolerance(.5)
-        self.pitch_o.set_unit("midi")
-
-        # buffer allows for always delivering a fixed buffer size to the pitch detector
-        self.buffer = FIFOBuffer(self.buffer_size * 8, buf_type=np.float32)
-
-        self.cur_pitch = 0
-
-    # Add incoming data to pitch detector. Return estimated pitch as floating point 
-    # midi value.
-    # Returns 0 if a strong pitch is not found.
-    def write(self, signal):
-        conf = 0
-
-        self.buffer.write(signal) # insert data
-
-        # read data in the fixed chunk sizes, as many as possible.
-        # keep only the highest confidence estimate of the pitches found.
-        while self.buffer.get_read_available() > self.buffer_size:
-            p, c = self._process_window(self.buffer.read(self.buffer_size))
-            if c >= conf:
-                conf = c
-                self.cur_pitch = p
-        return self.cur_pitch
-
-    # helpfer function for finding the pitch of the fixed buffer signal.
-    def _process_window(self, signal):
-        pitch = self.pitch_o(signal)[0]
-        conf = self.pitch_o.get_confidence()
-        return pitch, conf
-
+CHORD_CHANNEL = 1
 
 # Same as WaveSource interface, but is given audio data explicity.
 class WaveArray(object):
@@ -322,6 +284,8 @@ class MainWidget1(BaseWidget) :
         self.mixer.add(self.io_buffer)
 
         self.synth = Synth('data/FluidR3_GM.sf2')
+        self.synth.program(0, 0, 40) # violin
+        self.synth.program(0, 0, 73) # flute
         self.synth.program(1, 0, 24)
         self.synth_note = 0
         self.last_note = 60 # always nonzero, user's note won't be too far away
@@ -393,7 +357,6 @@ class MainWidget1(BaseWidget) :
 
     def next_note_play(self, tick, (melody, i)):
 
-        CHORD_CHANNEL = 1
         self.synth.noteoff(CHORD_CHANNEL, melody[(i - 1)%len(melody)][1])
         self.synth.noteon(CHORD_CHANNEL, melody[i][1], 100)
         self.sched.post_at_tick(tick + melody[i][0], self.next_note_play, (melody, (i + 1) % (len(melody))))
@@ -450,6 +413,7 @@ class MainWidget1(BaseWidget) :
         self.info.text += "p: playback memory buffer"
 
     def receive_audio(self, frames, num_channels) :
+        print '#', frames.size
         # handle 1 or 2 channel input.
         # if input is stereo, mono will pick left or right channel. This is used
         # for input processing that must receive only one channel of audio (RMS, pitch, onset)
