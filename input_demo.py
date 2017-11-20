@@ -25,6 +25,7 @@ from common.clock import *
 from common.metro import *
 from common.synth import *
 from buffers import *
+from engine import *
 
 from collections import Counter
 
@@ -253,25 +254,6 @@ class GraphDisplay(InstructionGroup):
             self.points[1] = y
 
         self.line.points = self.points.tolist()
-
-# snap = (0, 2, 4, 5, 7, 9, 11, 12)
-# snap = (0, 2, 4, 7, 9, 12)
-# snap = (0, 4, 7, 12)
-
-def make_snap_template(chord):
-    template = list(sorted(c % 12 for c in chord))
-    return [template[-1] - 12] + template + [template[0] + 12]
-
-def snap_to_template(pitch, template):
-    if pitch == 0: return 0
-    octave = 12 * (pitch // 12)
-    return octave + min(template, key=lambda x: abs(x - (pitch - octave)))
-
-def push_near(anchor, pitch, max_jump):
-    if pitch == 0: return 0
-    while pitch > anchor + max_jump: pitch -= 12
-    while pitch < anchor - max_jump: pitch += 12
-    return pitch
 
 class MainWidget1(BaseWidget) :
     def __init__(self):
