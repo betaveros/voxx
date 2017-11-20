@@ -344,7 +344,7 @@ class MainWidget1(BaseWidget) :
         self.sched.post_at_tick(tick + melody[i][0], self.next_note_play, (melody, (i + 1) % (len(melody))))
 
     def next_note(self, tick, (ci, ct)):
-        print('next note')
+        # print('next note')
 
         TICK_UNIT = self.get_quantization_unit()
 
@@ -395,7 +395,7 @@ class MainWidget1(BaseWidget) :
         self.info.text += "p: playback memory buffer"
 
     def receive_audio(self, frames, num_channels) :
-        print '#', frames.size
+        # print '#', frames.size
         # handle 1 or 2 channel input.
         # if input is stereo, mono will pick left or right channel. This is used
         # for input processing that must receive only one channel of audio (RMS, pitch, onset)

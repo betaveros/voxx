@@ -8,6 +8,7 @@ from common.synth import *
 from collections import Counter
 
 import demo_chords
+import chords_gen
 
 import random
 from pitch_detector import PitchDetector
@@ -51,8 +52,14 @@ def majority_pitch(pitch_detector, mono_frame_array, template):
 
 class VoxxEngine(object):
     def __init__(self):
-        self.chords = demo_chords.which
-        self.lines = [demo_chords.baseline, demo_chords.guitar2, demo_chords.guitar3]
+        if False:
+            self.chords = demo_chords.which
+            self.lines = [demo_chords.baseline, demo_chords.guitar2, demo_chords.guitar3]
+        else:
+            c = chords_gen.chord_generater([1, 3, 6, 4, 2, 7], ['e', 'minor'], 240)
+            c = chords_gen.chord_generater([1, 5, 6, 4], ['e', 'major'], 240)
+            self.chords = c[-1]
+            self.lines = c[:-1]
 
     def process(self, buf):
 
