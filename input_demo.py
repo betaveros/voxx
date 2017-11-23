@@ -32,6 +32,8 @@ from collections import Counter
 from kivy.graphics.instructions import InstructionGroup
 from kivy.graphics import Color, Ellipse, Rectangle, Line
 from kivy.graphics import PushMatrix, PopMatrix, Translate, Scale, Rotate
+from kivy.uix.button import Button
+from kivy.uix.screenmanager import ScreenManager, Screen
 
 import chords_gen
 import demo_chords
@@ -514,6 +516,44 @@ class MainWidget1(BaseWidget) :
         write_wave_file(data, NUM_CHANNELS, 'recording' + str(REC_INDEX[idx]) + '.wav' )
         self.live_wave = WaveArray(data, NUM_CHANNELS)
         self.input_buffers = []
+
+class MainMainWidget1(ScreenManager):
+
+    def __init__(self):
+        super(MainMainWidget1, self).__init__()
+        label = Label(text='VoXX!',
+                size_hint=(.5, .25), pos_hint={'x':.25, 'y':.5},
+                color=(0, 0.5, 0.6, 1))
+        button = Button(text='Start',
+                size_hint=(.5, .25), pos_hint={'x':.25, 'y':.25},
+                background_color=(0, 0.5, 0.6, 1))
+        button.bind(on_press=self.go_to_main_callback)
+        s0 = Screen(name='0')
+        s0.add_widget(label)
+        s0.add_widget(button)
+        with s0.canvas.before:
+            Color(0.5, 0.9, 1, 1)
+            s0.rect = Rectangle(size=s0.size, pos=(0, 0))
+
+        def update_rect(instance, value):
+            s0.rect.size = instance.size
+        s0.bind(size=update_rect)
+
+        self.add_widget(s0)
+
+        main_screen = Screen(name='main')
+        self.w1 = MainWidget1()
+        main_screen.add_widget(self.w1)
+        self.add_widget(main_screen)
+
+    def go_to_main_callback(self, instance):
+        self.current = 'main'
+
+    def on_update(self):
+        self.w1.on_update()
+    def on_key_down(self, keycode, modifiers):
+        self.w1.on_key_down(keycode, modifiers)
+
 REC_INDEX = [1,2,3,4,5,6,7,8,9]
 # pass in which MainWidget to run as a command-line arg
-run(MainWidget1)
+run(MainMainWidget1)
