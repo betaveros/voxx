@@ -174,7 +174,7 @@ class MeterDisplay(InstructionGroup):
         # border
         w = 52
         h = self.max_height+2
-        self.add(Color(1,1,1))
+        self.add(Color(0,0,0))
         self.add(Line(points=(0,0, 0,h, w,h, w,0, 0,0), width=2))
 
         # meter
@@ -292,17 +292,18 @@ class MainWidget1(BaseWidget) :
         self.live_wave = None
 
         self.info = topleft_label()
+        self.info.color = (0, 0, 0, 1)
         self.add_widget(self.info)
 
         self.anim_group = AnimGroup()
 
-        self.mic_meter = MeterDisplay((50, 25),  150, (-96, 0), (.1,.9,.3))
-        self.mic_graph = GraphDisplay((110, 25), 150, 300, (-96, 0), (.1,.9,.3))
+        self.mic_meter = MeterDisplay((50, 25),  150, (-96, 0), (0.0,0.6,0.1))
+        self.mic_graph = GraphDisplay((110, 25), 150, 300, (-96, 0), (0.0,0.6,0.1))
 
         self.pitch_meter = MeterDisplay((50, 200), 300, (30, 90), (.9,.1,.3))
         self.pitch_graph = GraphDisplay((110, 200), 300, 300, (30, 90), (.9,.1,.3))
 
-        self.output_pitch_graph = GraphDisplay((110, 200), 300, 300, (30, 90), (.8,.9,1.0))
+        self.output_pitch_graph = GraphDisplay((110, 200), 300, 300, (30, 90), (0.0,0.0,1.0))
 
         self.canvas.add(self.mic_meter)
         self.canvas.add(self.mic_graph)
@@ -517,6 +518,17 @@ class MainWidget1(BaseWidget) :
         self.live_wave = WaveArray(data, NUM_CHANNELS)
         self.input_buffers = []
 
+class ScreenWithBackground(Screen):
+    def __init__(self, name, rgba):
+        super(Screen, self).__init__(name=name)
+
+        with self.canvas.before:
+            Color(*rgba)
+            rect = Rectangle(size=self.size, pos=(0, 0))
+        def update_rect(instance, value):
+            rect.size = instance.size
+        self.bind(size=update_rect)
+
 class MainMainWidget1(ScreenManager):
 
     def __init__(self):
@@ -528,20 +540,15 @@ class MainMainWidget1(ScreenManager):
                 size_hint=(.5, .25), pos_hint={'x':.25, 'y':.25},
                 background_color=(0, 0.5, 0.6, 1))
         button.bind(on_press=self.go_to_main_callback)
-        s0 = Screen(name='0')
+
+        bg = (0.5, 0.9, 1, 1)
+
+        s0 = ScreenWithBackground('0', bg)
         s0.add_widget(label)
         s0.add_widget(button)
-        with s0.canvas.before:
-            Color(0.5, 0.9, 1, 1)
-            s0.rect = Rectangle(size=s0.size, pos=(0, 0))
-
-        def update_rect(instance, value):
-            s0.rect.size = instance.size
-        s0.bind(size=update_rect)
-
         self.add_widget(s0)
 
-        main_screen = Screen(name='main')
+        main_screen = ScreenWithBackground('main', bg)
         self.w1 = MainWidget1()
         main_screen.add_widget(self.w1)
         self.add_widget(main_screen)
