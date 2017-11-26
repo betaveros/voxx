@@ -555,6 +555,7 @@ class MainMainWidget1(ScreenManager):
         self.make_mood_screen_1()
         self.make_mood_screen_2()
         self.make_record_screen()
+        #self.make_instrument_screen()
         main_screen = ScreenWithBackground('main')
         self.w1 = MainWidget1()
         main_screen.add_widget(self.w1)
@@ -637,6 +638,18 @@ class MainMainWidget1(ScreenManager):
 
         screen.add_widget(label)
         self.add_widget(screen)
+
+    # def make_instrument_screen(self):
+    #     pass
+    #     screen = ScreenWithBackground('instrument')
+
+
+
+
+
+
+    #     screen.add_widget(label)
+    #     self.add_widget(screen)
 
     def go_to_callback(self, name):
         def callback(instance):
