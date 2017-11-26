@@ -547,19 +547,27 @@ coral = (0.980, 0.521, 0.4, 1)
 light_pink = (0.992, 0.925, 0.960,1)
 black = (0.317, 0.321, 0.317,1)
 bright_blue = (0.160, 0.850, 1,1)
+
+
+def make_button(text, font_size, color, size_hint_x, size_hint_y, pos_hint_x, pos_hint_y, bg_color):
+    return Button(text=text, font_size=font_size, color=color, size_hint=(size_hint_x, size_hint_y), pos_hint={'x': pos_hint_x, 'y': pos_hint_y}, background_normal='', background_color=bg_color)
+    
+
 class MainMainWidget1(ScreenManager):
 
     def __init__(self):
         super(MainMainWidget1, self).__init__()
         self.make_start_screen()
         self.make_mood_screen_1()
-        self.make_mood_screen_2()
+        self.make_progression_screen()
         self.make_record_screen()
         main_screen = ScreenWithBackground('main')
         self.w1 = MainWidget1()
         main_screen.add_widget(self.w1)
         self.add_widget(main_screen)
 
+
+   
     def make_start_screen(self):
         screen = ScreenWithBackground('start')
         label1 = Label(text=u'V\u00f6XX!',
@@ -572,10 +580,11 @@ class MainMainWidget1(ScreenManager):
                 size_hint=(.7, .3), pos_hint={'x':.15, 'y':.4},
                 color=dark_teal)
 
-        button1 = Button(text='Set by Mood',
-                font_size = 50, color = light_pink,
-                size_hint=(.25, .15), pos_hint={'x':.2, 'y':.25},
-                background_normal='', background_color = dark_teal)
+        button1 = make_button('Set by Mood', 50, light_pink, .25, .15, .2, .25, dark_teal)
+        # button1 = Button(text='Set by Mood',
+        #         font_size = 50, color = light_pink,
+        #         size_hint=(.25, .15), pos_hint={'x':.2, 'y':.25},
+        #         background_normal='', background_color = dark_teal)
         button1.bind(on_press=self.go_to_callback('mood1'))
 
         button2 = Button(text='Set by Input',
@@ -597,6 +606,7 @@ class MainMainWidget1(ScreenManager):
         screen.add_widget(button3)
 
         self.add_widget(screen)
+
 
     def make_mood_screen_1(self):
         screen = ScreenWithBackground('mood1')
@@ -625,28 +635,57 @@ class MainMainWidget1(ScreenManager):
                 size_hint=(.1, .15), pos_hint={'x':.8, 'y':.25},
                 background_normal='', background_color = dark_teal)
 
-        button_chill.bind(on_press=self.go_to_callback('record'))
+        button_back = Button(text='Back',
+                font_size = 50, color = black,
+                size_hint=(.1, .15), pos_hint={'x':.01, 'y':.02},
+                background_normal='', background_color = background)
+
+        button_next = Button(text='Next',
+                font_size = 50, color = black,
+                size_hint=(.1, .15), pos_hint={'x':.89, 'y':.02},
+                background_normal='', background_color = background)
+
+        button_next.bind(on_press=self.go_to_callback('length'))
+        button_back.bind(on_press=self.go_to_callback('start'))
 
         screen.add_widget(label)
         screen.add_widget(button_happy)
         screen.add_widget(button_sad)
         screen.add_widget(button_epic)
         screen.add_widget(button_chill)
+        screen.add_widget(button_back)
+        screen.add_widget(button_next)
         self.add_widget(screen)
 
-    def make_mood_screen_2(self):
-        screen = ScreenWithBackground('mood2')
-        label = Label(text='Sad Mood',
-                font_size = 200,
+    def make_progression_screen(self):
+        screen = ScreenWithBackground('length')
+        label = Label(text='Set Progression Length',
+                font_size = 100,
                 size_hint=(.5, .3), pos_hint={'x':.25, 'y':.6},
                 color=(0, 0.5, 0.6, 1))
-        button = Button(text='Record',
-                size_hint=(.5, .25), pos_hint={'x':.25, 'y':.25},
-                background_color=(0, 0.5, 0.6, 1))
-        button.bind(on_press=self.go_to_callback('record'))
+        button_short = Button(text='Short\n (4 measures)',
+                font_size = 50, color = light_pink,
+                size_hint=(.2, .15), pos_hint={'x':.1, 'y':.25},
+                background_normal='', background_color = dark_teal)
+
+        button_mid = Button(text='Medium\n(6 measures)',
+                font_size = 50, color = light_pink,
+                size_hint=(.2, .15), pos_hint={'x':.4, 'y':.25},
+                background_normal='', background_color = dark_teal)
+
+        button_long = Button(text='Long\n (8 measures)',
+                font_size = 50, color = light_pink,
+                size_hint=(.2, .15), pos_hint={'x':.7, 'y':.25},
+                background_normal='', background_color = dark_teal)
+
+        button_short.bind(on_press=self.go_to_callback('record'))
+        button_mid.bind(on_press=self.go_to_callback('record'))
+        button_long.bind(on_press=self.go_to_callback('record'))
 
         screen.add_widget(label)
-        screen.add_widget(button)
+        screen.add_widget(button_short)
+        screen.add_widget(button_mid)
+        screen.add_widget(button_long)
         self.add_widget(screen)
 
     def make_record_screen(self):
