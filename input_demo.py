@@ -587,9 +587,15 @@ class MainMainWidget1(ScreenManager):
         self.measure_length = None
 
         self.make_start_screen()
+
         self.make_mood_screen_1()
         self.make_progression_screen()
+
+        #self.make_input_screen()
+        #self.make_rhythm_screen()
+
         self.make_record_screen()
+
         self.make_instrument_screen()
         main_screen = ScreenWithBackground('main')
         self.w1 = MainWidget1()
@@ -638,7 +644,7 @@ class MainMainWidget1(ScreenManager):
         button2.bind(on_press=self.go_to_callback('mood1'))
 
         button3 = make_bg_button('Skip Background Track', .25, .15, .7, .04, 40)
-        button3.bind(on_press=self.go_to_callback('instrument'))
+        button3.bind(on_press=self.go_to_callback('record'))
 
         button1.bind(on_press=self.input_md_callback(button1))
         button2.bind(on_press=self.input_md_callback(button2))
@@ -717,6 +723,9 @@ class MainMainWidget1(ScreenManager):
         screen.add_widget(button_long)
         self.add_widget(screen)
 
+
+
+
     def make_record_screen(self):
         screen = ScreenWithBackground('record')
 
@@ -738,12 +747,18 @@ class MainMainWidget1(ScreenManager):
                     self.mixer.add(WaveGenerator(WaveArray(self.engine.process(WaveArray(dat, 2)), 2)))
         play_button.bind(on_press=play)
 
+        
+        button_instrument = make_button('Change Instrument', .18, .15, .8, .8, 30)
+        button_instrument.bind(on_press=self.go_to_callback('instrument'))
+
         button_cancel = make_bg_button('Cancel',.1, .1, .85, .02)
         button_cancel.bind(on_press=self.go_to_callback('start'))
 
         screen.add_widget(label)
         screen.add_widget(play_button)
         screen.add_widget(button_cancel)
+        screen.add_widget(button_instrument)
+
 
         self.graph_widget = GraphDisplayWidget(
                 size_hint=(.5, .3), pos_hint={'x':.25, 'y':.2})
@@ -789,8 +804,9 @@ class MainMainWidget1(ScreenManager):
         button_bass   = make_button('Bass', .18, .15, .5, .14)
         button_sax    = make_button('Saxophone', .18, .15, .7, .14)
 
-        button_preview   = make_button('Preview', .18, .15, .08, .14, bg_color = darker_teal)
+        button_preview = make_button('Preview', .18, .15, .08, .14, bg_color = darker_teal)
         button_done    = make_button('Done', .18, .15, .28, .14, bg_color = darker_teal)
+        button_done.bind(on_press=self.go_to_callback('record'))
 
 
         button_cancel = make_bg_button('Cancel',.1, .1, .85, .02)
