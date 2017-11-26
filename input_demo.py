@@ -704,8 +704,9 @@ class MainMainWidget1(ScreenManager):
         screen = ScreenWithBackground('length')
         label = Label(text='Set Progression Length',
                 font_size = 100,
-                size_hint=(.5, .3), pos_hint={'x':.25, 'y':.6},
+                size_hint=(.5, .3), pos_hint={'x':.25, 'y':.8},
                 color=(0, 0.5, 0.6, 1))
+
         button_short = make_button('Short\n (4 measures)', .2, .15, .1, .25)
 
         button_mid = make_button('Medium\n(6 measures)', .2, .15, .4, .25)
@@ -719,7 +720,7 @@ class MainMainWidget1(ScreenManager):
         button_short.bind(on_press=self.measure_callback(button_short))
         button_mid.bind(on_press=self.measure_callback(button_mid))
         button_long.bind(on_press=self.measure_callback(button_long))
-        button_next.bind(on_press=self.go_to_callback('record'))
+        button_next.bind(on_press=self.go_to_callback('instrument'))
         button_back.bind(on_press=self.go_to_callback('mood1'))
 
 
@@ -729,6 +730,77 @@ class MainMainWidget1(ScreenManager):
         screen.add_widget(button_long)
         screen.add_widget(button_back)
         screen.add_widget(button_next)
+        self.add_widget(screen)
+
+    def make_instrument_screen(self):
+        screen = ScreenWithBackground('instrument')
+        label1 = Label(text='Select Instrument',
+                font_size = 100,
+                size_hint=(.7, .2), pos_hint={'x':.15, 'y':.8},
+                color=dark_teal)
+
+        label2 = Label(text='Quick Selection',
+                font_size = 60,
+                size_hint=(.38, .2), pos_hint={'x':.5, 'y':.65},
+                color=dark_teal)
+
+
+        label3 = Label(text='MIDI Number',
+                font_size = 70,
+                size_hint=(.18, .15), pos_hint={'x':.15, 'y':.65},
+                color=dark_teal)
+
+        text_input = IntInput(
+                font_size = 100,
+                color = dark_teal,
+                size_hint=(.18, .15), pos_hint={'x':.15, 'y':.5}, 
+                background_normal = '', background_color = light_pink,
+                foreground_color = dark_teal,
+                cursor_color = dark_teal)
+
+
+
+        button_piano  = make_button('Piano', .18, .15, .5, .5)
+        button_guitar = make_button('Guitar', .18, .15, .7, .5)
+        button_violin = make_button('Violin', .18, .15, .5, .32)
+        button_cello  = make_button('Cello', .18, .15, .7, .32)
+        button_bass   = make_button('Bass', .18, .15, .5, .14)
+        button_sax    = make_button('Saxophone', .18, .15, .7, .14)
+
+        button_preview = make_button('Preview', .18, .15, .08, .14, bg_color = darker_teal)
+        button_done    = make_button('Done', .18, .15, .28, .14, bg_color = darker_teal)
+        button_done.bind(on_press=self.go_to_callback('record'))
+
+
+        # button_cancel = make_bg_button('Cancel',.1, .1, .85, .02)
+        # button_cancel.bind(on_press=self.go_to_callback('start'))
+
+        button_back = make_bg_button('Back', .1, .15, .01, .02)
+        button_next = make_bg_button('Next', .1, .15, .89, .02)
+
+        button_next.bind(on_press=self.go_to_callback('record'))
+        button_back.bind(on_press=self.go_to_callback('length'))
+
+
+        
+
+        screen.add_widget(label1)
+        screen.add_widget(label2)
+        screen.add_widget(label3)
+        screen.add_widget(text_input)      
+        screen.add_widget(button_piano)
+        screen.add_widget(button_guitar)
+        screen.add_widget(button_violin)
+        screen.add_widget(button_cello)
+        screen.add_widget(button_bass)
+        screen.add_widget(button_sax) 
+        screen.add_widget(button_preview) 
+        screen.add_widget(button_done)               
+        # screen.add_widget(button_cancel)     
+        screen.add_widget(button_back)
+        screen.add_widget(button_next) 
+
+
         self.add_widget(screen)
 
     def update_record_label(self):
@@ -816,65 +888,7 @@ class MainMainWidget1(ScreenManager):
         screen.add_widget(self.graph_widget)
         self.add_widget(screen)
 
-    def make_instrument_screen(self):
-        screen = ScreenWithBackground('instrument')
-        label1 = Label(text='Select Instrument',
-                font_size = 100,
-                size_hint=(.7, .2), pos_hint={'x':.15, 'y':.8},
-                color=dark_teal)
-
-        label2 = Label(text='Quick Selection',
-                font_size = 60,
-                size_hint=(.38, .2), pos_hint={'x':.5, 'y':.65},
-                color=dark_teal)
-
-
-        label3 = Label(text='MIDI Number',
-                font_size = 70,
-                size_hint=(.18, .15), pos_hint={'x':.15, 'y':.65},
-                color=dark_teal)
-
-        text_input = IntInput(
-                font_size = 100,
-                color = dark_teal,
-                size_hint=(.18, .15), pos_hint={'x':.15, 'y':.5}, 
-                background_normal = '', background_color = light_pink,
-                foreground_color = dark_teal,
-                cursor_color = dark_teal)
-
-
-
-        button_piano  = make_button('Piano', .18, .15, .5, .5)
-        button_guitar = make_button('Guitar', .18, .15, .7, .5)
-        button_violin = make_button('Violin', .18, .15, .5, .32)
-        button_cello  = make_button('Cello', .18, .15, .7, .32)
-        button_bass   = make_button('Bass', .18, .15, .5, .14)
-        button_sax    = make_button('Saxophone', .18, .15, .7, .14)
-
-        button_preview = make_button('Preview', .18, .15, .08, .14, bg_color = darker_teal)
-        button_done    = make_button('Done', .18, .15, .28, .14, bg_color = darker_teal)
-        button_done.bind(on_press=self.go_to_callback('record'))
-
-
-        button_cancel = make_bg_button('Cancel',.1, .1, .85, .02)
-        button_cancel.bind(on_press=self.go_to_callback('start'))
-
-        screen.add_widget(label1)
-        screen.add_widget(label2)
-        screen.add_widget(label3)
-        screen.add_widget(text_input)      
-        screen.add_widget(button_piano)
-        screen.add_widget(button_guitar)
-        screen.add_widget(button_violin)
-        screen.add_widget(button_cello)
-        screen.add_widget(button_bass)
-        screen.add_widget(button_sax) 
-        screen.add_widget(button_preview) 
-        screen.add_widget(button_done)               
-        screen.add_widget(button_cancel)      
-
-
-        self.add_widget(screen)
+    
 
     def go_to_callback(self, name):
         def callback(instance):
