@@ -66,13 +66,20 @@ class VoxxEngine(object):
 
     def play_lines(self, synth, scheduler):
 
+        stopper = [False]
+
         def next_note_play(tick, (melody, i)):
             synth.noteoff(CHORD_CHANNEL, melody[(i - 1)%len(melody)][1])
+            if stopper[0]: return
             synth.noteon(CHORD_CHANNEL, melody[i][1], 100)
             scheduler.post_at_tick(tick + melody[i][0], next_note_play, (melody, (i + 1) % (len(melody))))
 
         for line in self.lines:
             next_note_play(scheduler.get_tick(), (line, 0))
+
+        def stop_callback():
+            stopper[0] = True
+        return stop_callback
 
     def set_chords(self, chords=[1, 3, 6, 4, 2, 7], key=['e', 'minor'], rhythm=240):
         c = chords_gen.chord_generater(chords, key, rhythm)
@@ -90,8 +97,9 @@ class VoxxEngine(object):
         # note_frame_count = Audio.sample_rate / 2
         note_frame_count = int(round(Audio.sample_rate * 60.0 / self.bpm))
         cur_pitch = None
-        writer = AudioWriter('processed')
-        writer.start()
+        # writer = AudioWriter('processed')
+        # writer.start()
+        ret_data_list = []
 
         cur_template = make_snap_template(self.chords[0][1:])
         line_progress = [(0, 0)] * len(self.lines)
@@ -118,7 +126,7 @@ class VoxxEngine(object):
             last_pitch = cur_pitch
 
             synth_data, continue_flag = synth.generate(end_frame - frame, 2)
-            writer.add_audio(synth_data, 2)
+            ret_data_list.append(synth_data)
 
             tick += self.tick_unit
 
@@ -137,9 +145,7 @@ class VoxxEngine(object):
                     note_tick = 0
                 line_progress[i] = (note_idx, note_tick)
 
-
-
-        writer.stop()
+        return combine_buffers(ret_data_list)
 
 if __name__ == "__main__":
     infile = WaveFile('solo_test_files/solo_test_60bpm_la_connected.wav')

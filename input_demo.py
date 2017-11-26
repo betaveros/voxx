@@ -608,6 +608,10 @@ class MainMainWidget1(ScreenManager):
 
         self.audio.set_generator(self.mixer)
 
+        self.recording = False
+        self.input_buffers = []
+        self.data = []
+
         self.channel_select = 0
 
         Clock.schedule_interval(self.on_update, 0)
@@ -719,7 +723,15 @@ class MainMainWidget1(ScreenManager):
                 color=(0, 0.5, 0.6, 1))
         play_button = make_button('Play', .5, .2, .25, .5, 100)
         def play(instance):
-            self.engine.play_lines(self.synth, self.sched)
+            if self.recording:
+                self.recording = False
+                self.engine_stop()
+                self.data.append(combine_buffers(self.input_buffers))
+            else:
+                self.recording = True
+                self.engine_stop = self.engine.play_lines(self.synth, self.sched)
+                for dat in self.data:
+                    self.mixer.add(WaveGenerator(WaveArray(self.engine.process(WaveArray(dat, 2)), 2)))
         play_button.bind(on_press=play)
 
         screen.add_widget(label)
@@ -818,6 +830,9 @@ class MainMainWidget1(ScreenManager):
         # pitch detection: get pitch and display on meter and graph
         self.cur_pitch = self.pitch.write(mono)
         self.graph_widget.graph.add_point(self.cur_pitch)
+
+        if self.recording:
+            self.input_buffers.append(frames)
 
     def on_update(self, dt):
         # self.w1.on_update()
