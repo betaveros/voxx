@@ -571,6 +571,9 @@ def make_button(text, size_hint_x, size_hint_y, pos_hint_x, pos_hint_y, font_siz
 def make_bg_button(text, size_hint_x, size_hint_y, pos_hint_x, pos_hint_y, font_size=50):
     return make_button(text, size_hint_x, size_hint_y, pos_hint_x, pos_hint_y, font_size, color=black, bg_color=background)
 
+
+
+
 class MainMainWidget1(ScreenManager):
 
     def __init__(self):
@@ -655,6 +658,8 @@ class MainMainWidget1(ScreenManager):
 
         button_next.bind(on_press=self.go_to_callback('length'))
         button_back.bind(on_press=self.go_to_callback('start'))
+
+        button_happy.bind(on_press=self.set_color_callback(button_happy))
 
         screen.add_widget(label)
         screen.add_widget(button_happy)
@@ -759,6 +764,12 @@ class MainMainWidget1(ScreenManager):
         def callback(instance):
             self.current = name
         return callback
+
+    def set_color_callback(self, button):
+        def callback(instance):
+            button.background_color = coral
+        return callback
+    
 
     def receive_audio(self, frames, num_channels) :
         # get one channel from input
