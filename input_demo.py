@@ -107,7 +107,7 @@ class IOBuffer(object):
 
 # looks at incoming audio data, detects onsets, and then a little later, classifies the onset as 
 # "kick" or "snare"
-# calls callback function with message argument that is one of "onset", "kick", "snare"
+# calls callback function with message argument that is one of "onset", "kick", ""
 class OnsetDectior(object):
     def __init__(self, callback):
         super(OnsetDectior, self).__init__()
@@ -601,17 +601,38 @@ class MainMainWidget1(ScreenManager):
 
     def make_mood_screen_1(self):
         screen = ScreenWithBackground('mood1')
-        label = Label(text='Happy Mood',
+        label = Label(text='Choose A Mood',
                 font_size = 200,
                 size_hint=(.5, .3), pos_hint={'x':.25, 'y':.6},
                 color=(0, 0.5, 0.6, 1))
-        button = Button(text='Record',
-                size_hint=(.5, .25), pos_hint={'x':.25, 'y':.25},
-                background_color=(0, 0.5, 0.6, 1))
-        button.bind(on_press=self.go_to_callback('record'))
+
+        button_happy = Button(text='Happy',
+                font_size = 50, color = light_pink,
+                size_hint=(.1, .15), pos_hint={'x':.2, 'y':.25},
+                background_normal='', background_color = dark_teal)
+
+        button_sad = Button(text='Sad',
+                font_size = 50, color = light_pink,
+                size_hint=(.1, .15), pos_hint={'x':.4, 'y':.25},
+                background_normal='', background_color = dark_teal)
+
+        button_epic = Button(text='Epic',
+                font_size = 50, color = light_pink,
+                size_hint=(.1, .15), pos_hint={'x':.6, 'y':.25},
+                background_normal='', background_color = dark_teal)
+
+        button_chill = Button(text='Chill',
+                font_size = 50, color = light_pink,
+                size_hint=(.1, .15), pos_hint={'x':.8, 'y':.25},
+                background_normal='', background_color = dark_teal)
+
+        button_chill.bind(on_press=self.go_to_callback('record'))
 
         screen.add_widget(label)
-        screen.add_widget(button)
+        screen.add_widget(button_happy)
+        screen.add_widget(button_sad)
+        screen.add_widget(button_epic)
+        screen.add_widget(button_chill)
         self.add_widget(screen)
 
     def make_mood_screen_2(self):
