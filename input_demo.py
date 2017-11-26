@@ -520,7 +520,7 @@ class MainWidget1(BaseWidget) :
         self.input_buffers = []
 
 class ScreenWithBackground(Screen):
-    def __init__(self, name, rgba):
+    def __init__(self, name, rgba = (0.5, 0.9, 1, 1)):
         super(Screen, self).__init__(name=name)
 
         with self.canvas.before:
@@ -543,31 +543,69 @@ class MainMainWidget1(ScreenManager):
 
     def __init__(self):
         super(MainMainWidget1, self).__init__()
+        self.make_start_screen()
+        self.make_mood_screen_1()
+        self.make_mood_screen_2()
+        self.make_record_screen()
+        main_screen = ScreenWithBackground('main')
+        self.w1 = MainWidget1()
+        main_screen.add_widget(self.w1)
+        self.add_widget(main_screen)
+
+    def make_start_screen(self):
+        screen = ScreenWithBackground('start')
         label = Label(text='VoXX!',
                 font_size = 300,
                 size_hint=(.5, .3), pos_hint={'x':.25, 'y':.6},
                 color=(0, 0.5, 0.6, 1))
-        button1 = Button(text='Set by Mood',
+        button = Button(text='Set by Mood',
                 size_hint=(.5, .25), pos_hint={'x':.25, 'y':.25},
                 background_color=(0, 0.5, 0.6, 1))
-        button1.bind(on_press=self.go_to_callback('tk'))
+        button.bind(on_press=self.go_to_callback('mood1'))
 
-        bg = (0.5, 0.9, 1, 1)
+        screen.add_widget(label)
+        screen.add_widget(button)
+        self.add_widget(screen)
 
-        s0 = ScreenWithBackground('0', bg)
-        s0.add_widget(label)
-        s0.add_widget(button1)
-        self.add_widget(s0)
+    def make_mood_screen_1(self):
+        screen = ScreenWithBackground('mood1')
+        label = Label(text='Mood 1',
+                font_size = 300,
+                size_hint=(.5, .3), pos_hint={'x':.25, 'y':.6},
+                color=(0, 0.5, 0.6, 1))
+        button = Button(text='Record',
+                size_hint=(.5, .25), pos_hint={'x':.25, 'y':.25},
+                background_color=(0, 0.5, 0.6, 1))
+        button.bind(on_press=self.go_to_callback('record'))
 
-        tempo_key_screen = ScreenWithBackground('tk', bg)
-        bpm_input = IntInput(size_hint=(.5, .25), pos_hint={'x':.25, 'y':.5})
-        tempo_key_screen.add_widget(bpm_input)
-        self.add_widget(tempo_key_screen)
+        screen.add_widget(label)
+        screen.add_widget(button)
+        self.add_widget(screen)
 
-        main_screen = ScreenWithBackground('main', bg)
-        self.w1 = MainWidget1()
-        main_screen.add_widget(self.w1)
-        self.add_widget(main_screen)
+    def make_mood_screen_2(self):
+        screen = ScreenWithBackground('mood2')
+        label = Label(text='Mood 2',
+                font_size = 300,
+                size_hint=(.5, .3), pos_hint={'x':.25, 'y':.6},
+                color=(0, 0.5, 0.6, 1))
+        button = Button(text='Record',
+                size_hint=(.5, .25), pos_hint={'x':.25, 'y':.25},
+                background_color=(0, 0.5, 0.6, 1))
+        button.bind(on_press=self.go_to_callback('record'))
+
+        screen.add_widget(label)
+        screen.add_widget(button)
+        self.add_widget(screen)
+
+    def make_record_screen(self):
+        screen = ScreenWithBackground('record')
+        label = Label(text='Record TODO',
+                font_size = 300,
+                size_hint=(.5, .3), pos_hint={'x':.25, 'y':.6},
+                color=(0, 0.5, 0.6, 1))
+
+        screen.add_widget(label)
+        self.add_widget(screen)
 
     def go_to_callback(self, name):
         def callback(instance):
