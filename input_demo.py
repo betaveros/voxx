@@ -734,6 +734,15 @@ class MainMainWidget1(ScreenManager):
                 size_hint=(.18, .15), pos_hint={'x':.15, 'y':.5},
                 color=dark_teal)
 
+        text_input = IntInput(
+                font_size = 100,
+                color = dark_teal,
+                size_hint=(.18, .15), pos_hint={'x':.15, 'y':.32}, 
+                background_normal = '', background_color = light_pink,
+                cursor_color = dark_teal)
+
+
+
         button_piano  = make_button('Piano', .18, .15, .5, .5)
         button_guitar = make_button('Guitar', .18, .15, .7, .5)
         button_violin = make_button('Violin', .18, .15, .5, .32)
@@ -745,14 +754,14 @@ class MainMainWidget1(ScreenManager):
         button_done    = make_button('Done', .18, .15, .28, .14)
 
 
-
         button_cancel = make_bg_button('Cancel',.1, .1, .85, .02)
         button_cancel.bind(on_press=self.go_to_callback('start'))
 
         screen.add_widget(label1)
         screen.add_widget(label2)
         # screen.add_widget(label3)
-        screen.add_widget(label4)      
+        screen.add_widget(label4)
+        screen.add_widget(text_input)      
         screen.add_widget(button_piano)
         screen.add_widget(button_guitar)
         screen.add_widget(button_violin)
