@@ -692,13 +692,58 @@ class MainMainWidget1(ScreenManager):
 
     def make_instrument_screen(self):
         screen = ScreenWithBackground('instrument')
-        label = Label(text='Select Instrument',
+        label1 = Label(text='Select Instrument',
                 font_size = 100,
                 size_hint=(.7, .2), pos_hint={'x':.15, 'y':.8},
                 color=dark_teal)
 
+        label2 = Label(text='Quick Selection',
+                font_size = 60,
+                size_hint=(.38, .2), pos_hint={'x':.5, 'y':.65},
+                color=dark_teal)
 
-        screen.add_widget(label)
+        button_piano = Button(text='Piano',
+                font_size = 50, color = light_pink,
+                size_hint=(.18, .15), pos_hint={'x':.5, 'y':.5},
+                background_normal='', background_color = dark_teal)
+
+        button_guitar = Button(text='Guitar',
+                font_size = 50, color = light_pink,
+                size_hint=(.18, .15), pos_hint={'x':.7, 'y':.5},
+                background_normal='', background_color = dark_teal)
+
+        button_violin = Button(text='Violin',
+                font_size = 50, color = light_pink,
+                size_hint=(.18, .15), pos_hint={'x':.5, 'y':.32},
+                background_normal='', background_color = dark_teal)
+
+        button_cello = Button(text='Cello',
+                font_size = 50, color = light_pink,
+                size_hint=(.18, .15), pos_hint={'x':.7, 'y':.32},
+                background_normal='', background_color = dark_teal)
+
+        button_bass = Button(text='Bass',
+                font_size = 50, color = light_pink,
+                size_hint=(.18, .15), pos_hint={'x':.5, 'y':.14},
+                background_normal='', background_color = dark_teal)
+
+        button_sax = Button(text='Saxophone',
+                font_size = 40, color = light_pink,
+                size_hint=(.18, .15), pos_hint={'x':.7, 'y':.14},
+                background_normal='', background_color = dark_teal)
+
+
+
+        screen.add_widget(label1)
+        screen.add_widget(label2)
+        screen.add_widget(button_piano)
+        screen.add_widget(button_guitar)
+        screen.add_widget(button_violin)
+        screen.add_widget(button_cello)
+        screen.add_widget(button_bass)
+        screen.add_widget(button_sax)        
+
+
         self.add_widget(screen)
 
     def go_to_callback(self, name):
