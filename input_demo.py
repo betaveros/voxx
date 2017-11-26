@@ -541,7 +541,7 @@ class IntInput(TextInput):
         good = ''.join(c for c in substring if c.isdigit())
         return super(IntInput, self).insert_text(good, from_undo=from_undo)
 
-
+background = (0.694, 0.976, 0.988, 1)
 dark_teal = (0.164, 0.517, 0.552, 1)
 coral = (0.980, 0.521, 0.4, 1)
 light_pink = (0.992, 0.925, 0.960,1)
@@ -573,21 +573,28 @@ class MainMainWidget1(ScreenManager):
                 color=dark_teal)
 
         button1 = Button(text='Set by Mood',
-                font_size = 50,
+                font_size = 50, color = light_pink,
                 size_hint=(.25, .15), pos_hint={'x':.2, 'y':.25},
                 background_normal='', background_color = dark_teal)
         button1.bind(on_press=self.go_to_callback('mood1'))
 
         button2 = Button(text='Set by Input',
-                font_size =50,
+                font_size =50, color = light_pink,
                 size_hint=(.25, .15), pos_hint={'x':.55, 'y':.25},
                 background_normal = '', background_color = dark_teal)
         button2.bind(on_press=self.go_to_callback('mood1'))
+
+        button3 = Button(text='Skip Background Track',
+                font_size =40, color = black,
+                size_hint=(.25, .15), pos_hint={'x':.7, 'y':.04},
+                background_normal = '', background_color = background)
+        button3.bind(on_press=self.go_to_callback('mood1'))
 
         screen.add_widget(label1)
         screen.add_widget(label2)
         screen.add_widget(button1)
         screen.add_widget(button2)
+        screen.add_widget(button3)
 
         self.add_widget(screen)
 
