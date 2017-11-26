@@ -586,6 +586,19 @@ class MainMainWidget1(ScreenManager):
         main_screen.add_widget(self.w1)
         self.add_widget(main_screen)
 
+        self.engine = VoxxEngine()
+
+        self.mixer = Mixer()
+        self.synth = Synth('data/FluidR3_GM.sf2')
+        self.synth.program(NOTE_CHANNEL, 0, 73) # flute
+        self.synth.program(CHORD_CHANNEL, 0, 24)
+        self.tempo_map = SimpleTempoMap(120)
+        self.sched = AudioScheduler(self.tempo_map)
+        self.mixer.add(self.synth)
+        self.mixer.add(self.sched)
+
+        self.audio.set_generator(self.mixer)
+
         self.channel_select = 0
 
         Clock.schedule_interval(self.on_update, 0)
@@ -714,10 +727,18 @@ class MainMainWidget1(ScreenManager):
         screen = ScreenWithBackground('record')
         label = Label(text='Record TODO',
                 font_size = 300,
-                size_hint=(.5, .3), pos_hint={'x':.25, 'y':.6},
+                size_hint=(.5, .2), pos_hint={'x':.25, 'y':.7},
                 color=(0, 0.5, 0.6, 1))
+        play_button = Button(text='Play',
+                font_size = 300,
+                size_hint=(.5, .2), pos_hint={'x':.25, 'y':.5})
+        def play(instance):
+            self.engine.play_lines(self.synth, self.sched)
+        play_button.bind(on_press=play)
 
         screen.add_widget(label)
+        screen.add_widget(play_button)
+
         self.graph_widget = GraphDisplayWidget(
                 size_hint=(.5, .3), pos_hint={'x':.25, 'y':.2})
         self.graph_widget.graph.add_point(59)

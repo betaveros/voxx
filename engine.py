@@ -64,6 +64,16 @@ class VoxxEngine(object):
         self.bpm = 120
         self.tick_unit = 80
 
+    def play_lines(self, synth, scheduler):
+
+        def next_note_play(tick, (melody, i)):
+            synth.noteoff(CHORD_CHANNEL, melody[(i - 1)%len(melody)][1])
+            synth.noteon(CHORD_CHANNEL, melody[i][1], 100)
+            scheduler.post_at_tick(tick + melody[i][0], next_note_play, (melody, (i + 1) % (len(melody))))
+
+        for line in self.lines:
+            next_note_play(scheduler.get_tick(), (line, 0))
+
     def set_chords(self, chords=[1, 3, 6, 4, 2, 7], key=['e', 'minor'], rhythm=240):
         c = chords_gen.chord_generater(chords, key, rhythm)
         self.chords = c[-1]
