@@ -239,8 +239,9 @@ class GraphDisplay(InstructionGroup):
         self.idx = 0
         self.mode = 'scroll'
         self.line = Line( width = 1.5 )
+        self.translate = Translate(*pos)
         self.add(PushMatrix())
-        self.add(Translate(*pos))
+        self.add(self.translate)
         self.add(Color(*color))
         self.add(self.line)
         self.add(PopMatrix())
@@ -257,6 +258,21 @@ class GraphDisplay(InstructionGroup):
             self.points[1] = y
 
         self.line.points = self.points.tolist()
+
+    def set_pos(self, pos):
+        self.translate.xy = pos
+
+class GraphDisplayWidget(BaseWidget):
+    def __init__(self, **kwargs):
+        super(GraphDisplayWidget, self).__init__(**kwargs)
+
+        self.graph = GraphDisplay(self.pos, 300, 300, (30, 90), (.9,.1,.3))
+        self.canvas.add(self.graph)
+
+        self.bind(pos=self.redraw)
+
+    def redraw(self, x, y):
+        self.graph.set_pos(self.pos)
 
 class MainWidget1(BaseWidget) :
     def __init__(self):
@@ -551,6 +567,9 @@ class MainMainWidget1(ScreenManager):
 
     def __init__(self):
         super(MainMainWidget1, self).__init__()
+        self.audio = Audio(NUM_CHANNELS, input_func=self.receive_audio)
+        self.pitch = PitchDetector()
+
         self.make_start_screen()
         self.make_mood_screen_1()
         self.make_mood_screen_2()
@@ -560,6 +579,10 @@ class MainMainWidget1(ScreenManager):
         self.w1 = MainWidget1()
         main_screen.add_widget(self.w1)
         self.add_widget(main_screen)
+
+        self.channel_select = 0
+
+        Clock.schedule_interval(self.on_update, 0)
 
     def make_start_screen(self):
         screen = ScreenWithBackground('start')
@@ -658,6 +681,13 @@ class MainMainWidget1(ScreenManager):
                 color=(0, 0.5, 0.6, 1))
 
         screen.add_widget(label)
+        self.graph_widget = GraphDisplayWidget(
+                size_hint=(.5, .3), pos_hint={'x':.25, 'y':.2})
+        self.graph_widget.graph.add_point(59)
+        self.graph_widget.graph.add_point(60)
+        self.graph_widget.graph.add_point(60)
+        self.graph_widget.graph.add_point(60)
+        screen.add_widget(self.graph_widget)
         self.add_widget(screen)
 
     def make_instrument_screen(self):
@@ -676,8 +706,20 @@ class MainMainWidget1(ScreenManager):
             self.current = name
         return callback
 
-    def on_update(self):
-        self.w1.on_update()
+    def receive_audio(self, frames, num_channels) :
+        # get one channel from input
+        if num_channels == 2:
+            mono = frames[self.channel_select::2] # pick left or right channel
+        else:
+            mono = frames
+
+        # pitch detection: get pitch and display on meter and graph
+        self.cur_pitch = self.pitch.write(mono)
+        self.graph_widget.graph.add_point(self.cur_pitch)
+
+    def on_update(self, dt):
+        # self.w1.on_update()
+        self.audio.on_update()
     def on_key_down(self, keycode, modifiers):
         self.w1.on_key_down(keycode, modifiers)
 
