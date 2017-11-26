@@ -33,6 +33,7 @@ from kivy.graphics.instructions import InstructionGroup
 from kivy.graphics import Color, Ellipse, Rectangle, Line
 from kivy.graphics import PushMatrix, PopMatrix, Translate, Scale, Rotate
 from kivy.uix.button import Button
+from kivy.uix.textinput import TextInput
 from kivy.uix.screenmanager import ScreenManager, Screen
 
 import chords_gen
@@ -529,6 +530,15 @@ class ScreenWithBackground(Screen):
             rect.size = instance.size
         self.bind(size=update_rect)
 
+class IntInput(TextInput):
+
+    def __init__(self, **kwargs):
+        super(IntInput, self).__init__(multiline=False, **kwargs)
+
+    def insert_text(self, substring, from_undo=False):
+        good = ''.join(c for c in substring if c.isdigit())
+        return super(IntInput, self).insert_text(good, from_undo=from_undo)
+
 class MainMainWidget1(ScreenManager):
 
     def __init__(self):
@@ -539,7 +549,7 @@ class MainMainWidget1(ScreenManager):
         button = Button(text='Start',
                 size_hint=(.5, .25), pos_hint={'x':.25, 'y':.25},
                 background_color=(0, 0.5, 0.6, 1))
-        button.bind(on_press=self.go_to_main_callback)
+        button.bind(on_press=self.go_to_callback('tk'))
 
         bg = (0.5, 0.9, 1, 1)
 
@@ -548,13 +558,20 @@ class MainMainWidget1(ScreenManager):
         s0.add_widget(button)
         self.add_widget(s0)
 
+        tempo_key_screen = ScreenWithBackground('tk', bg)
+        bpm_input = IntInput(size_hint=(.5, .25), pos_hint={'x':.25, 'y':.5})
+        tempo_key_screen.add_widget(bpm_input)
+        self.add_widget(tempo_key_screen)
+
         main_screen = ScreenWithBackground('main', bg)
         self.w1 = MainWidget1()
         main_screen.add_widget(self.w1)
         self.add_widget(main_screen)
 
-    def go_to_main_callback(self, instance):
-        self.current = 'main'
+    def go_to_callback(self, name):
+        def callback(instance):
+            self.current = name
+        return callback
 
     def on_update(self):
         self.w1.on_update()
