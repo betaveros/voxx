@@ -620,13 +620,18 @@ class MainMainWidget1(ScreenManager):
                 size_hint=(.1, .15), pos_hint={'x':.6, 'y':.25},
                 background_normal='', background_color = dark_teal)
 
+        button_chill = Button(text='Chill',
+                font_size = 50, color = light_pink,
+                size_hint=(.1, .15), pos_hint={'x':.8, 'y':.25},
+                background_normal='', background_color = dark_teal)
 
-        button_epic.bind(on_press=self.go_to_callback('record'))
+        button_chill.bind(on_press=self.go_to_callback('record'))
 
         screen.add_widget(label)
         screen.add_widget(button_happy)
         screen.add_widget(button_sad)
         screen.add_widget(button_epic)
+        screen.add_widget(button_chill)
         self.add_widget(screen)
 
     def make_mood_screen_2(self):
