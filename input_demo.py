@@ -544,18 +544,19 @@ class MainMainWidget1(ScreenManager):
     def __init__(self):
         super(MainMainWidget1, self).__init__()
         label = Label(text='VoXX!',
-                size_hint=(.5, .25), pos_hint={'x':.25, 'y':.5},
+                font_size = 300,
+                size_hint=(.5, .3), pos_hint={'x':.25, 'y':.6},
                 color=(0, 0.5, 0.6, 1))
-        button = Button(text='Start',
+        button1 = Button(text='Set by Mood',
                 size_hint=(.5, .25), pos_hint={'x':.25, 'y':.25},
                 background_color=(0, 0.5, 0.6, 1))
-        button.bind(on_press=self.go_to_callback('tk'))
+        button1.bind(on_press=self.go_to_callback('tk'))
 
         bg = (0.5, 0.9, 1, 1)
 
         s0 = ScreenWithBackground('0', bg)
         s0.add_widget(label)
-        s0.add_widget(button)
+        s0.add_widget(button1)
         self.add_widget(s0)
 
         tempo_key_screen = ScreenWithBackground('tk', bg)
