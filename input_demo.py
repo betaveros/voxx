@@ -841,7 +841,7 @@ class MainMainWidget1(ScreenManager):
             self.update_record_label()
 
         def save(instance):
-            if self.cur_layer.data:
+            if self.cur_layer:
                 self.layers.append(self.cur_layer)
                 self.cur_layer = Layer(int(self.instrument_input.text), None)
 
