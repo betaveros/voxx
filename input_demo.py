@@ -575,13 +575,13 @@ class MainMainWidget1(ScreenManager):
         button1 = Button(text='Set by Mood',
                 font_size = 50,
                 size_hint=(.25, .15), pos_hint={'x':.2, 'y':.25},
-                background_color=dark_teal)
+                background_normal='', background_color = dark_teal)
         button1.bind(on_press=self.go_to_callback('mood1'))
 
         button2 = Button(text='Set by Input',
                 font_size =50,
                 size_hint=(.25, .15), pos_hint={'x':.55, 'y':.25},
-                background_color=dark_teal)
+                background_normal = '', background_color = dark_teal)
         button2.bind(on_press=self.go_to_callback('mood1'))
 
         screen.add_widget(label1)
