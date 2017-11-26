@@ -520,7 +520,7 @@ class MainWidget1(BaseWidget) :
         self.input_buffers = []
 
 class ScreenWithBackground(Screen):
-    def __init__(self, name, rgba = (0.5, 0.9, 1, 1)):
+    def __init__(self, name, rgba = (0.694, 0.976, 0.988, 1)):
         super(Screen, self).__init__(name=name)
 
         with self.canvas.before:
@@ -539,6 +539,12 @@ class IntInput(TextInput):
         good = ''.join(c for c in substring if c.isdigit())
         return super(IntInput, self).insert_text(good, from_undo=from_undo)
 
+
+dark_teal = (0.164, 0.517, 0.552, 1)
+coral = (0.980, 0.521, 0.4, 1)
+light_pink = (0.992, 0.925, 0.960,1)
+black = (0.317, 0.321, 0.317,1)
+bright_blue = (0.160, 0.850, 1,1)
 class MainMainWidget1(ScreenManager):
 
     def __init__(self):
@@ -552,18 +558,26 @@ class MainMainWidget1(ScreenManager):
         main_screen.add_widget(self.w1)
         self.add_widget(main_screen)
 
+
+
     def make_start_screen(self):
         screen = ScreenWithBackground('start')
-        label = Label(text='VoXX!',
+        label1 = Label(text='VoXX!',
                 font_size = 300,
                 size_hint=(.5, .3), pos_hint={'x':.25, 'y':.6},
-                color=(0, 0.5, 0.6, 1))
+                color= dark_teal)
+        label2 = Label(text='Set Background Track',
+                font_size = 100,
+                size_hint=(.7, .2), pos_hint={'x':.15, 'y':.4},
+                color=dark_teal)
+
         button = Button(text='Set by Mood',
                 size_hint=(.5, .25), pos_hint={'x':.25, 'y':.25},
-                background_color=(0, 0.5, 0.6, 1))
+                background_color=dark_teal)
         button.bind(on_press=self.go_to_callback('mood1'))
 
-        screen.add_widget(label)
+        screen.add_widget(label1)
+        screen.add_widget(label2)
         screen.add_widget(button)
         self.add_widget(screen)
 
