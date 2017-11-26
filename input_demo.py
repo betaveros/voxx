@@ -540,9 +540,11 @@ class IntInput(TextInput):
         return super(IntInput, self).insert_text(good, from_undo=from_undo)
 
 
-green_button = (0.164, 0.517, 0.552, 1)
-orange_button = (0.980, 0.521, 0.4, 1)
-text_color = (0.992, 0.925, 0.960,1)
+dark_teal = (0.164, 0.517, 0.552, 1)
+coral = (0.980, 0.521, 0.4, 1)
+light_pink = (0.992, 0.925, 0.960,1)
+black = (0.317, 0.321, 0.317,1)
+bright_blue = (0.160, 0.850, 1,1)
 class MainMainWidget1(ScreenManager):
 
     def __init__(self):
@@ -563,14 +565,15 @@ class MainMainWidget1(ScreenManager):
         label1 = Label(text='VoXX!',
                 font_size = 300,
                 size_hint=(.5, .3), pos_hint={'x':.25, 'y':.6},
-                color= green_button)
+                color= dark_teal)
         label2 = Label(text='Set Background Track',
                 font_size = 100,
                 size_hint=(.7, .2), pos_hint={'x':.15, 'y':.4},
-                color=green_button)
+                color=dark_teal)
+
         button = Button(text='Set by Mood',
                 size_hint=(.5, .25), pos_hint={'x':.25, 'y':.25},
-                background_color=(0, 0.5, 0.6, 1))
+                background_color=dark_teal)
         button.bind(on_press=self.go_to_callback('mood1'))
 
         screen.add_widget(label1)
