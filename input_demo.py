@@ -581,6 +581,10 @@ class MainMainWidget1(ScreenManager):
         self.audio = Audio(NUM_CHANNELS, input_func=self.receive_audio)
         self.pitch = PitchDetector()
 
+        self.input_mode = None
+        self.mood = None
+        self.measure_length = None
+
         self.make_start_screen()
         self.make_mood_screen_1()
         self.make_progression_screen()
@@ -602,9 +606,7 @@ class MainMainWidget1(ScreenManager):
         self.mixer.add(self.synth)
         self.mixer.add(self.sched)
 
-
-        self.mood = None
-        self.measure_length = None
+        
 
         self.audio.set_generator(self.mixer)
 
@@ -633,8 +635,8 @@ class MainMainWidget1(ScreenManager):
         button3 = make_bg_button('Skip Background Track', .25, .15, .7, .04, 40)
         button3.bind(on_press=self.go_to_callback('instrument'))
 
-        button1.bind(on_press=self.set_color_callback(button1))
-        button2.bind(on_press=self.set_color_callback(button2))
+        button1.bind(on_press=self.input_md_callback(button1))
+        button2.bind(on_press=self.input_md_callback(button2))
 
 
         screen.add_widget(label1)
@@ -667,10 +669,10 @@ class MainMainWidget1(ScreenManager):
         button_next.bind(on_press=self.go_to_callback('length'))
         button_back.bind(on_press=self.go_to_callback('start'))
 
-        button_happy.bind(on_press=self.set_color_callback(button_happy))
-        button_sad.bind(on_press=self.set_color_callback(button_sad))
-        button_epic.bind(on_press=self.set_color_callback(button_epic))
-        button_chill.bind(on_press=self.set_color_callback(button_chill))
+        button_happy.bind(on_press=self.mood_callback(button_happy))
+        button_sad.bind(on_press=self.mood_callback(button_sad))
+        button_epic.bind(on_press=self.mood_callback(button_epic))
+        button_chill.bind(on_press=self.mood_callback(button_chill))
 
 
 
@@ -806,7 +808,43 @@ class MainMainWidget1(ScreenManager):
         def callback(instance):
             button.background_color = coral
         return callback
-    
+    def input_md_callback(self,button):
+        def callback(instance):
+            if self.input_mode == None:
+                button.background_color = coral
+                self.input_mode = button
+
+            if button != self.input_mode:
+                self.input_mode.background_color = dark_teal
+                button.background_color = coral
+                self.input_mode = button
+        return callback
+
+    def mood_callback(self,button):
+        def callback(instance):
+            if self.mood == None:
+                button.background_color = coral
+                self.mood = button
+
+            if button != self.mood:
+                self.mood.background_color = dark_teal
+                button.background_color = coral
+                self.mood = button
+        return callback
+
+    def measure_callback(self, button):
+        def callback(instance):
+            if self.measure_length == None:
+                button.background_color = coral
+                self.measure_length = button
+
+            if button != self.measure_length:
+                self.measure_length.background_color = dark_teal
+                button.background_color = coral
+                self.measure_length = button
+        return callback
+
+
 
     def receive_audio(self, frames, num_channels) :
         # get one channel from input
