@@ -602,6 +602,10 @@ class MainMainWidget1(ScreenManager):
         self.mixer.add(self.synth)
         self.mixer.add(self.sched)
 
+
+        self.mood = None
+        self.measure_length = None
+
         self.audio.set_generator(self.mixer)
 
         self.channel_select = 0
@@ -628,6 +632,10 @@ class MainMainWidget1(ScreenManager):
 
         button3 = make_bg_button('Skip Background Track', .25, .15, .7, .04, 40)
         button3.bind(on_press=self.go_to_callback('instrument'))
+
+        button1.bind(on_press=self.set_color_callback(button1))
+        button2.bind(on_press=self.set_color_callback(button2))
+
 
         screen.add_widget(label1)
         screen.add_widget(label2)
@@ -660,6 +668,11 @@ class MainMainWidget1(ScreenManager):
         button_back.bind(on_press=self.go_to_callback('start'))
 
         button_happy.bind(on_press=self.set_color_callback(button_happy))
+        button_sad.bind(on_press=self.set_color_callback(button_sad))
+        button_epic.bind(on_press=self.set_color_callback(button_epic))
+        button_chill.bind(on_press=self.set_color_callback(button_chill))
+
+
 
         screen.add_widget(label)
         screen.add_widget(button_happy)
@@ -685,6 +698,10 @@ class MainMainWidget1(ScreenManager):
         button_short.bind(on_press=self.go_to_callback('record'))
         button_mid.bind(on_press=self.go_to_callback('record'))
         button_long.bind(on_press=self.go_to_callback('record'))
+
+        button_short.bind(on_press=self.set_color_callback(button_short))
+        button_mid.bind(on_press=self.set_color_callback(button_mid))
+        button_long.bind(on_press=self.set_color_callback(button_long))
 
         screen.add_widget(label)
         screen.add_widget(button_short)
