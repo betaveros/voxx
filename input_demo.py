@@ -708,6 +708,7 @@ class MainMainWidget1(ScreenManager):
         button_mid.bind(on_press=self.set_color_callback(button_mid))
         button_long.bind(on_press=self.set_color_callback(button_long))
 
+
         screen.add_widget(label)
         screen.add_widget(button_short)
         screen.add_widget(button_mid)
@@ -735,8 +736,12 @@ class MainMainWidget1(ScreenManager):
                     self.mixer.add(WaveGenerator(WaveArray(self.engine.process(WaveArray(dat, 2)), 2)))
         play_button.bind(on_press=play)
 
+        button_cancel = make_bg_button('Cancel',.1, .1, .85, .02)
+        button_cancel.bind(on_press=self.go_to_callback('start'))
+
         screen.add_widget(label)
         screen.add_widget(play_button)
+        screen.add_widget(button_cancel)
 
         self.graph_widget = GraphDisplayWidget(
                 size_hint=(.5, .3), pos_hint={'x':.25, 'y':.2})
