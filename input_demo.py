@@ -712,19 +712,23 @@ class MainMainWidget1(ScreenManager):
 
         button_long = make_button('Long\n (8 measures)', .2, .15, .7, .25)
 
-        button_short.bind(on_press=self.go_to_callback('record'))
-        button_mid.bind(on_press=self.go_to_callback('record'))
-        button_long.bind(on_press=self.go_to_callback('record'))
+        button_back = make_bg_button('Back', .1, .15, .01, .02)
 
-        button_short.bind(on_press=self.set_color_callback(button_short))
-        button_mid.bind(on_press=self.set_color_callback(button_mid))
-        button_long.bind(on_press=self.set_color_callback(button_long))
+        button_next = make_bg_button('Next', .1, .15, .89, .02)
+
+        button_short.bind(on_press=self.measure_callback(button_short))
+        button_mid.bind(on_press=self.measure_callback(button_mid))
+        button_long.bind(on_press=self.measure_callback(button_long))
+        button_next.bind(on_press=self.go_to_callback('record'))
+        button_back.bind(on_press=self.go_to_callback('mood1'))
 
 
         screen.add_widget(label)
         screen.add_widget(button_short)
         screen.add_widget(button_mid)
         screen.add_widget(button_long)
+        screen.add_widget(button_back)
+        screen.add_widget(button_next)
         self.add_widget(screen)
 
     def update_record_label(self):
