@@ -560,10 +560,6 @@ class MainMainWidget1(ScreenManager):
         main_screen.add_widget(self.w1)
         self.add_widget(main_screen)
 
-        self.current = 'main'
-
-
-
     def make_start_screen(self):
         screen = ScreenWithBackground('start')
         label1 = Label(text='VoXX!',
