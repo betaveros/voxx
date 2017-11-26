@@ -702,6 +702,16 @@ class MainMainWidget1(ScreenManager):
                 size_hint=(.38, .2), pos_hint={'x':.5, 'y':.65},
                 color=dark_teal)
 
+        label3 = Label(text='OR',
+                font_size = 100,
+                size_hint=(.2, .2), pos_hint={'x':.35, 'y':.4},
+                color=dark_teal)
+
+        label4 = Label(text='MIDI Number',
+                font_size = 70,
+                size_hint=(.18, .15), pos_hint={'x':.1, 'y':.5},
+                color=dark_teal)
+
         button_piano = Button(text='Piano',
                 font_size = 50, color = light_pink,
                 size_hint=(.18, .15), pos_hint={'x':.5, 'y':.5},
@@ -736,6 +746,8 @@ class MainMainWidget1(ScreenManager):
 
         screen.add_widget(label1)
         screen.add_widget(label2)
+        screen.add_widget(label3)
+        screen.add_widget(label4)      
         screen.add_widget(button_piano)
         screen.add_widget(button_guitar)
         screen.add_widget(button_violin)
