@@ -559,6 +559,7 @@ class IntInput(TextInput):
 
 background = (0.694, 0.976, 0.988, 1)
 dark_teal = (0.164, 0.517, 0.552, 1)
+darker_teal = (0.035, 0.345, 0.364,1)
 coral = (0.980, 0.521, 0.4, 1)
 light_pink = (0.992, 0.925, 0.960,1)
 black = (0.317, 0.321, 0.317,1)
@@ -609,6 +610,10 @@ class MainMainWidget1(ScreenManager):
         
 
         self.audio.set_generator(self.mixer)
+
+        self.recording = False
+        self.input_buffers = []
+        self.data = []
 
         self.channel_select = 0
 
@@ -705,6 +710,7 @@ class MainMainWidget1(ScreenManager):
         button_mid.bind(on_press=self.set_color_callback(button_mid))
         button_long.bind(on_press=self.set_color_callback(button_long))
 
+
         screen.add_widget(label)
         screen.add_widget(button_short)
         screen.add_widget(button_mid)
@@ -721,11 +727,23 @@ class MainMainWidget1(ScreenManager):
                 color=(0, 0.5, 0.6, 1))
         play_button = make_button('Play', .5, .2, .25, .5, 100)
         def play(instance):
-            self.engine.play_lines(self.synth, self.sched)
+            if self.recording:
+                self.recording = False
+                self.engine_stop()
+                self.data.append(combine_buffers(self.input_buffers))
+            else:
+                self.recording = True
+                self.engine_stop = self.engine.play_lines(self.synth, self.sched)
+                for dat in self.data:
+                    self.mixer.add(WaveGenerator(WaveArray(self.engine.process(WaveArray(dat, 2)), 2)))
         play_button.bind(on_press=play)
+
+        button_cancel = make_bg_button('Cancel',.1, .1, .85, .02)
+        button_cancel.bind(on_press=self.go_to_callback('start'))
 
         screen.add_widget(label)
         screen.add_widget(play_button)
+        screen.add_widget(button_cancel)
 
         self.graph_widget = GraphDisplayWidget(
                 size_hint=(.5, .3), pos_hint={'x':.25, 'y':.2})
@@ -748,21 +766,18 @@ class MainMainWidget1(ScreenManager):
                 size_hint=(.38, .2), pos_hint={'x':.5, 'y':.65},
                 color=dark_teal)
 
-        # label3 = Label(text='OR',
-        #         font_size = 100,
-        #         size_hint=(.2, .2), pos_hint={'x':.35, 'y':.4},
-        #         color=dark_teal)
 
-        label4 = Label(text='MIDI Number',
+        label3 = Label(text='MIDI Number',
                 font_size = 70,
-                size_hint=(.18, .15), pos_hint={'x':.15, 'y':.5},
+                size_hint=(.18, .15), pos_hint={'x':.15, 'y':.65},
                 color=dark_teal)
 
         text_input = IntInput(
                 font_size = 100,
                 color = dark_teal,
-                size_hint=(.18, .15), pos_hint={'x':.15, 'y':.32}, 
+                size_hint=(.18, .15), pos_hint={'x':.15, 'y':.5}, 
                 background_normal = '', background_color = light_pink,
+                foreground_color = dark_teal,
                 cursor_color = dark_teal)
 
 
@@ -774,8 +789,8 @@ class MainMainWidget1(ScreenManager):
         button_bass   = make_button('Bass', .18, .15, .5, .14)
         button_sax    = make_button('Saxophone', .18, .15, .7, .14)
 
-        button_preview   = make_button('Preview', .18, .15, .08, .14)
-        button_done    = make_button('Done', .18, .15, .28, .14)
+        button_preview   = make_button('Preview', .18, .15, .08, .14, bg_color = darker_teal)
+        button_done    = make_button('Done', .18, .15, .28, .14, bg_color = darker_teal)
 
 
         button_cancel = make_bg_button('Cancel',.1, .1, .85, .02)
@@ -783,8 +798,7 @@ class MainMainWidget1(ScreenManager):
 
         screen.add_widget(label1)
         screen.add_widget(label2)
-        # screen.add_widget(label3)
-        screen.add_widget(label4)
+        screen.add_widget(label3)
         screen.add_widget(text_input)      
         screen.add_widget(button_piano)
         screen.add_widget(button_guitar)
@@ -856,6 +870,9 @@ class MainMainWidget1(ScreenManager):
         # pitch detection: get pitch and display on meter and graph
         self.cur_pitch = self.pitch.write(mono)
         self.graph_widget.graph.add_point(self.cur_pitch)
+
+        if self.recording:
+            self.input_buffers.append(frames)
 
     def on_update(self, dt):
         # self.w1.on_update()
