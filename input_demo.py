@@ -572,8 +572,10 @@ def make_button(text, size_hint_x, size_hint_y, pos_hint_x, pos_hint_y, font_siz
 def make_bg_button(text, size_hint_x, size_hint_y, pos_hint_x, pos_hint_y, font_size=50):
     return make_button(text, size_hint_x, size_hint_y, pos_hint_x, pos_hint_y, font_size, color=black, bg_color=background)
 
-
-
+class Layer(object):
+    def __init__(self, instrument, data):
+        self.instrument = instrument
+        self.data = data
 
 class MainMainWidget1(ScreenManager):
 
@@ -611,9 +613,11 @@ class MainMainWidget1(ScreenManager):
 
         self.audio.set_generator(self.mixer)
 
+        self.playing = False
         self.recording = False
         self.input_buffers = []
-        self.data = []
+        self.layers = []
+        self.cur_layer = None
 
         self.channel_select = 0
 
@@ -717,32 +721,74 @@ class MainMainWidget1(ScreenManager):
         screen.add_widget(button_long)
         self.add_widget(screen)
 
+    def update_record_label(self):
+        self.record_label.text = 'Record ({} layer{}{})'.format(len(self.layers), '' if len(self.layers) == 1 else 's', ' + 1' if self.cur_layer else '')
+
     def make_record_screen(self):
         screen = ScreenWithBackground('record')
 
-        label = Label(text='Record',
-                font_size = 200,
+        self.record_label = Label(text='Record...',
+                font_size = 100,
                 size_hint=(.5, .3), pos_hint={'x':.25, 'y':.6},
 
                 color=(0, 0.5, 0.6, 1))
-        play_button = make_button('Play', .5, .2, .25, .5, 100)
+        play_button = make_button('Play', .5, .1, .25, .6, 100)
+        save_button = make_button('Save', .5, .1, .25, .5, 100)
+        record_button = make_button('Record', .5, .1, .25, .4, 100)
+
         def play(instance):
+            if self.playing:
+                self.playing = False
+                self.engine_stop()
+            else:
+                self.playing = True
+                self.engine_stop = self.engine.play_lines(self.synth, self.sched)
+                layers = self.layers
+                if self.cur_layer: layers = layers + [self.cur_layer]
+                for layer in layers:
+                    data_array = WaveArray(layer.data, 2)
+                    instrument = layer.instrument
+                    processed = self.engine.process(data_array, instrument)
+                    self.mixer.add(WaveGenerator(WaveArray(processed, 2)))
+
+            self.update_record_label()
+
+        def save(instance):
+            if self.cur_layer:
+                self.layers.append(self.cur_layer)
+                self.cur_layer = None
+
+            self.update_record_label()
+
+        def record(instance):
             if self.recording:
                 self.recording = False
                 self.engine_stop()
-                self.data.append(combine_buffers(self.input_buffers))
+                data = combine_buffers(self.input_buffers)
+                self.cur_layer = Layer(40, data) # violin (FIXME)
             else:
+                self.input_buffers = []
                 self.recording = True
                 self.engine_stop = self.engine.play_lines(self.synth, self.sched)
-                for dat in self.data:
-                    self.mixer.add(WaveGenerator(WaveArray(self.engine.process(WaveArray(dat, 2)), 2)))
+                for layer in self.layers:
+                    data_array = WaveArray(layer.data, 2)
+                    instrument = layer.instrument
+                    processed = self.engine.process(data_array, instrument)
+                    self.mixer.add(WaveGenerator(WaveArray(processed, 2)))
+
+            self.update_record_label()
+
         play_button.bind(on_press=play)
+        save_button.bind(on_press=save)
+        record_button.bind(on_press=record)
 
         button_cancel = make_bg_button('Cancel',.1, .1, .85, .02)
         button_cancel.bind(on_press=self.go_to_callback('start'))
 
-        screen.add_widget(label)
+        screen.add_widget(self.record_label)
         screen.add_widget(play_button)
+        screen.add_widget(save_button)
+        screen.add_widget(record_button)
         screen.add_widget(button_cancel)
 
         self.graph_widget = GraphDisplayWidget(

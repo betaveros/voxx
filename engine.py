@@ -59,7 +59,7 @@ class VoxxEngine(object):
             self.lines = [demo_chords.baseline, demo_chords.guitar2, demo_chords.guitar3]
         else:
             self.set_chords()
-        self.note_instrument = 40 # violin
+        # self.note_instrument = 40 # violin
         self.chord_instrument = 24 # flute?
         self.bpm = 120
         self.tick_unit = 80
@@ -86,11 +86,11 @@ class VoxxEngine(object):
         self.chords = c[-1]
         self.lines = c[:-1]
 
-    def process(self, buf):
+    def process(self, buf, note_instrument, include_chords = False):
 
         pitch = PitchDetector()
         synth = Synth('data/FluidR3_GM.sf2')
-        synth.program(NOTE_CHANNEL, 0, self.note_instrument)
+        synth.program(NOTE_CHANNEL, 0, note_instrument)
         synth.program(CHORD_CHANNEL, 0, self.chord_instrument)
 
         tick = 0
@@ -105,8 +105,9 @@ class VoxxEngine(object):
         line_progress = [(0, 0)] * len(self.lines)
         chord_idx = 0
         chord_tick = 0
-        for line in self.lines:
-            synth.noteon(CHORD_CHANNEL, line[0][0], 100)
+        if include_chords:
+            for line in self.lines:
+                synth.noteon(CHORD_CHANNEL, line[0][0], 100)
         last_pitch = 0
         while True:
             frame = int(round(Audio.sample_rate * 60.0 / self.bpm * tick / kTicksPerQuarter))
@@ -136,14 +137,15 @@ class VoxxEngine(object):
                 cur_template = make_snap_template(self.chords[chord_idx][1:])
                 chord_tick = 0
 
-            for i, ((note_idx, note_tick), line) in enumerate(zip(line_progress, self.lines)):
-                note_tick += self.tick_unit
-                if note_tick >= line[note_idx][0]:
-                    synth.noteoff(CHORD_CHANNEL, line[note_idx][1])
-                    note_idx = (note_idx + 1) % len(line)
-                    synth.noteon(CHORD_CHANNEL, line[note_idx][1], 100)
-                    note_tick = 0
-                line_progress[i] = (note_idx, note_tick)
+            if include_chords:
+                for i, ((note_idx, note_tick), line) in enumerate(zip(line_progress, self.lines)):
+                    note_tick += self.tick_unit
+                    if note_tick >= line[note_idx][0]:
+                        synth.noteoff(CHORD_CHANNEL, line[note_idx][1])
+                        note_idx = (note_idx + 1) % len(line)
+                        synth.noteon(CHORD_CHANNEL, line[note_idx][1], 100)
+                        note_tick = 0
+                    line_progress[i] = (note_idx, note_tick)
 
         return combine_buffers(ret_data_list)
 
