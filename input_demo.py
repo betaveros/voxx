@@ -555,7 +555,7 @@ class MainMainWidget1(ScreenManager):
         self.make_mood_screen_1()
         self.make_mood_screen_2()
         self.make_record_screen()
-        #self.make_instrument_screen()
+        self.make_instrument_screen()
         main_screen = ScreenWithBackground('main')
         self.w1 = MainWidget1()
         main_screen.add_widget(self.w1)
@@ -589,7 +589,7 @@ class MainMainWidget1(ScreenManager):
                 font_size =40, color = black,
                 size_hint=(.25, .15), pos_hint={'x':.7, 'y':.04},
                 background_normal = '', background_color = background)
-        button3.bind(on_press=self.go_to_callback('mood1'))
+        button3.bind(on_press=self.go_to_callback('instrument'))
 
         screen.add_widget(label1)
         screen.add_widget(label2)
@@ -660,17 +660,16 @@ class MainMainWidget1(ScreenManager):
         screen.add_widget(label)
         self.add_widget(screen)
 
-    # def make_instrument_screen(self):
-    #     pass
-    #     screen = ScreenWithBackground('instrument')
+    def make_instrument_screen(self):
+        screen = ScreenWithBackground('instrument')
+        label = Label(text='Select Instrument',
+                font_size = 100,
+                size_hint=(.7, .2), pos_hint={'x':.15, 'y':.8},
+                color=dark_teal)
 
 
-
-
-
-
-    #     screen.add_widget(label)
-    #     self.add_widget(screen)
+        screen.add_widget(label)
+        self.add_widget(screen)
 
     def go_to_callback(self, name):
         def callback(instance):
