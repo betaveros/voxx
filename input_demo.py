@@ -562,7 +562,7 @@ class MainMainWidget1(ScreenManager):
 
     def make_start_screen(self):
         screen = ScreenWithBackground('start')
-        label1 = Label(text='VoXX!',
+        label1 = Label(text=u'V\u00f6XX!',
                 font_size = 300,
                 size_hint=(.5, .3), pos_hint={'x':.25, 'y':.6},
                 color= dark_teal)
