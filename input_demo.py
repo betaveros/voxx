@@ -712,8 +712,8 @@ class MainMainWidget1(ScreenManager):
 
     def make_record_screen(self):
         screen = ScreenWithBackground('record')
-        label = Label(text='Record TODO',
-                font_size = 300,
+        label = Label(text='Record',
+                font_size = 200,
                 size_hint=(.5, .3), pos_hint={'x':.25, 'y':.6},
                 color=(0, 0.5, 0.6, 1))
 
