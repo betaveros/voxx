@@ -133,8 +133,7 @@ class MainWidget(BaseWidget) :
         self.label.text += 'tempo:%d\n' % self.tempo_map.get_tempo()
         self.label.text += 'm: toggle Metronome\n'
         self.label.text += 's: toggle Sequence\n'
-        self.label.text += 'up/down: change speed\n'        
+        self.label.text += 'up/down: change speed\n'
 
-
-run(MainWidget)
-
+if __name__ == "__main__":
+    run(MainWidget)
