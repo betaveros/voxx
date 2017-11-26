@@ -623,7 +623,7 @@ class MainMainWidget1(ScreenManager):
         self.recording = False
         self.input_buffers = []
         self.layers = []
-        self.cur_layer = None
+        self.cur_layer = Layer(40, None)
 
         self.channel_select = 0
 
@@ -732,7 +732,9 @@ class MainMainWidget1(ScreenManager):
         self.add_widget(screen)
 
     def update_record_label(self):
-        self.record_label.text = 'Record ({} layer{}{})'.format(len(self.layers), '' if len(self.layers) == 1 else 's', ' + 1' if self.cur_layer else '')
+        self.record_label.text = 'Record ({} layer{}{})'.format(len(self.layers),
+                '' if len(self.layers) == 1 else 's',
+                '' if self.cur_layer.data is None else ' + 1')
 
     def make_record_screen(self):
         screen = ScreenWithBackground('record')
@@ -754,7 +756,7 @@ class MainMainWidget1(ScreenManager):
                 self.playing = True
                 self.engine_stop = self.engine.play_lines(self.synth, self.sched)
                 layers = self.layers
-                if self.cur_layer: layers = layers + [self.cur_layer]
+                if self.cur_layer.data is not None: layers = layers + [self.cur_layer]
                 for layer in layers:
                     data_array = WaveArray(layer.data, 2)
                     instrument = layer.instrument
@@ -764,9 +766,9 @@ class MainMainWidget1(ScreenManager):
             self.update_record_label()
 
         def save(instance):
-            if self.cur_layer:
+            if self.cur_layer.data:
                 self.layers.append(self.cur_layer)
-                self.cur_layer = None
+                self.cur_layer = Layer(int(self.instrument_input.text), None)
 
             self.update_record_label()
 
@@ -774,8 +776,7 @@ class MainMainWidget1(ScreenManager):
             if self.recording:
                 self.recording = False
                 self.engine_stop()
-                data = combine_buffers(self.input_buffers)
-                self.cur_layer = Layer(40, data) # violin (FIXME)
+                self.cur_layer.data = combine_buffers(self.input_buffers)
             else:
                 self.input_buffers = []
                 self.recording = True
@@ -816,6 +817,10 @@ class MainMainWidget1(ScreenManager):
         screen.add_widget(self.graph_widget)
         self.add_widget(screen)
 
+    def finish_set_instrument(self, instance):
+        self.cur_layer.instrument = int(self.instrument_input.text)
+        self.current = 'record'
+
     def make_instrument_screen(self):
         screen = ScreenWithBackground('instrument')
         label1 = Label(text='Select Instrument',
@@ -834,7 +839,8 @@ class MainMainWidget1(ScreenManager):
                 size_hint=(.18, .15), pos_hint={'x':.15, 'y':.65},
                 color=dark_teal)
 
-        text_input = IntInput(
+        self.instrument_input = IntInput(
+                text = '40', # violin?? idk
                 font_size = 100,
                 color = dark_teal,
                 size_hint=(.18, .15), pos_hint={'x':.15, 'y':.5}, 
@@ -842,18 +848,27 @@ class MainMainWidget1(ScreenManager):
                 foreground_color = dark_teal,
                 cursor_color = dark_teal)
 
-
+        def instrument_setter(num):
+            def cb(instance):
+                self.instrument_input.text = str(num)
+            return cb
 
         button_piano  = make_button('Piano', .18, .15, .5, .5)
+        button_piano.bind(on_press=instrument_setter(0))
         button_guitar = make_button('Guitar', .18, .15, .7, .5)
+        button_guitar.bind(on_press=instrument_setter(24))
         button_violin = make_button('Violin', .18, .15, .5, .32)
+        button_violin.bind(on_press=instrument_setter(40))
         button_cello  = make_button('Cello', .18, .15, .7, .32)
+        button_cello.bind(on_press=instrument_setter(42))
         button_bass   = make_button('Bass', .18, .15, .5, .14)
+        button_bass.bind(on_press=instrument_setter(32))
         button_sax    = make_button('Saxophone', .18, .15, .7, .14)
+        button_sax.bind(on_press=instrument_setter(65))
 
         button_preview = make_button('Preview', .18, .15, .08, .14, bg_color = darker_teal)
         button_done    = make_button('Done', .18, .15, .28, .14, bg_color = darker_teal)
-        button_done.bind(on_press=self.go_to_callback('record'))
+        button_done.bind(on_press=self.finish_set_instrument)
 
 
         button_cancel = make_bg_button('Cancel',.1, .1, .85, .02)
@@ -862,7 +877,7 @@ class MainMainWidget1(ScreenManager):
         screen.add_widget(label1)
         screen.add_widget(label2)
         screen.add_widget(label3)
-        screen.add_widget(text_input)      
+        screen.add_widget(self.instrument_input)
         screen.add_widget(button_piano)
         screen.add_widget(button_guitar)
         screen.add_widget(button_violin)
