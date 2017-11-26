@@ -1,3 +1,5 @@
+from __future__ import division, print_function
+
 from common.core import *
 from common.clock import kTicksPerQuarter
 from common.audio import *
@@ -56,23 +58,27 @@ class VoxxEngine(object):
             self.chords = demo_chords.which
             self.lines = [demo_chords.baseline, demo_chords.guitar2, demo_chords.guitar3]
         else:
-            c = chords_gen.chord_generater([1, 3, 6, 4, 2, 7], ['e', 'minor'], 240)
-            c = chords_gen.chord_generater([1, 5, 6, 4], ['e', 'major'], 240)
-            self.chords = c[-1]
-            self.lines = c[:-1]
+            self.set_chords()
+        self.note_instrument = 40 # violin
+        self.chord_instrument = 24 # flute?
+        self.bpm = 120
+        self.tick_unit = 80
+
+    def set_chords(self, chords=[1, 3, 6, 4, 2, 7], key=['e', 'minor'], rhythm=240):
+        c = chords_gen.chord_generater(chords, key, rhythm)
+        self.chords = c[-1]
+        self.lines = c[:-1]
 
     def process(self, buf):
 
         pitch = PitchDetector()
         synth = Synth('data/FluidR3_GM.sf2')
-        synth.program(NOTE_CHANNEL, 0, 40) # violin
-        synth.program(CHORD_CHANNEL, 0, 24)
+        synth.program(NOTE_CHANNEL, 0, self.note_instrument)
+        synth.program(CHORD_CHANNEL, 0, self.chord_instrument)
 
         tick = 0
-        tick_unit = 80
         # note_frame_count = Audio.sample_rate / 2
-        bpm = 120
-        note_frame_count = int(round(Audio.sample_rate * 60.0 / bpm))
+        note_frame_count = int(round(Audio.sample_rate * 60.0 / self.bpm))
         cur_pitch = None
         writer = AudioWriter('processed')
         writer.start()
@@ -85,9 +91,9 @@ class VoxxEngine(object):
             synth.noteon(CHORD_CHANNEL, line[0][0], 100)
         last_pitch = 0
         while True:
-            frame = int(round(Audio.sample_rate * 60.0 / bpm * tick / kTicksPerQuarter))
-            end_frame = int(round(Audio.sample_rate * 60.0 / bpm * (tick + tick_unit) / kTicksPerQuarter))
-            print frame, end_frame
+            frame = int(round(Audio.sample_rate * 60.0 / self.bpm * tick / kTicksPerQuarter))
+            end_frame = int(round(Audio.sample_rate * 60.0 / self.bpm * (tick + self.tick_unit) / kTicksPerQuarter))
+            print(frame, end_frame)
             unknown_slice = buf.get_frames(frame, end_frame)
             if not unknown_slice.size: break
             mono_slice = unknown_slice[::buf.get_num_channels()]
@@ -104,16 +110,16 @@ class VoxxEngine(object):
             synth_data, continue_flag = synth.generate(end_frame - frame, 2)
             writer.add_audio(synth_data, 2)
 
-            tick += tick_unit
+            tick += self.tick_unit
 
-            chord_tick += tick_unit
+            chord_tick += self.tick_unit
             if chord_tick >= self.chords[chord_idx][0]:
                 chord_idx = (chord_idx + 1) % len(self.chords)
                 cur_template = make_snap_template(self.chords[chord_idx][1:])
                 chord_tick = 0
 
             for i, ((note_idx, note_tick), line) in enumerate(zip(line_progress, self.lines)):
-                note_tick += tick_unit
+                note_tick += self.tick_unit
                 if note_tick >= line[note_idx][0]:
                     synth.noteoff(CHORD_CHANNEL, line[note_idx][1])
                     note_idx = (note_idx + 1) % len(line)
@@ -128,4 +134,3 @@ class VoxxEngine(object):
 if __name__ == "__main__":
     infile = WaveFile('solo_test_files/solo_test_60bpm_la_connected.wav')
     VoxxEngine().process(infile)
-

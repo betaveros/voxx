@@ -327,10 +327,6 @@ class MainWidget1(BaseWidget) :
         self.mixer.add(self.sched)
 
         self.audio.set_generator(self.mixer)
-        self.next_note(self.sched.get_tick(), (0, 0)) # specifies what was just voted on and should start playing
-        self.next_note_play(self.sched.get_tick(), (demo_chords.baseline, 0))
-        self.next_note_play(self.sched.get_tick(), (demo_chords.guitar2, 0))
-        self.next_note_play(self.sched.get_tick(), (demo_chords.guitar3, 0))
 
     def get_pitch_offset(self):
         return (-24, -12, 0, 12, 24)[self.pitch_offset_index]
@@ -506,6 +502,12 @@ class MainWidget1(BaseWidget) :
         if keycode[1] == 'k':
             self.max_jump += 1
 
+        if keycode[1] == 'spacebar':
+            self.next_note(self.sched.get_tick(), (0, 0)) # specifies what was just voted on and should start playing
+            self.next_note_play(self.sched.get_tick(), (demo_chords.baseline, 0))
+            self.next_note_play(self.sched.get_tick(), (demo_chords.guitar2, 0))
+            self.next_note_play(self.sched.get_tick(), (demo_chords.guitar3, 0))
+
         # adjust mixer gain
         gf = lookup(keycode[1], ('up', 'down'), (1.1, 1/1.1))
         if gf:
@@ -557,8 +559,6 @@ class MainMainWidget1(ScreenManager):
         self.w1 = MainWidget1()
         main_screen.add_widget(self.w1)
         self.add_widget(main_screen)
-
-
 
     def make_start_screen(self):
         screen = ScreenWithBackground('start')
