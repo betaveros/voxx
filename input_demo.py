@@ -729,14 +729,14 @@ class MainMainWidget1(ScreenManager):
                 size_hint=(.38, .2), pos_hint={'x':.5, 'y':.65},
                 color=dark_teal)
 
-        label3 = Label(text='OR',
-                font_size = 100,
-                size_hint=(.2, .2), pos_hint={'x':.35, 'y':.4},
-                color=dark_teal)
+        # label3 = Label(text='OR',
+        #         font_size = 100,
+        #         size_hint=(.2, .2), pos_hint={'x':.35, 'y':.4},
+        #         color=dark_teal)
 
         label4 = Label(text='MIDI Number',
                 font_size = 70,
-                size_hint=(.18, .15), pos_hint={'x':.1, 'y':.5},
+                size_hint=(.18, .15), pos_hint={'x':.15, 'y':.5},
                 color=dark_teal)
 
         button_piano  = make_button('Piano', .18, .15, .5, .5)
@@ -746,16 +746,27 @@ class MainMainWidget1(ScreenManager):
         button_bass   = make_button('Bass', .18, .15, .5, .14)
         button_sax    = make_button('Saxophone', .18, .15, .7, .14)
 
+        button_preview   = make_button('Preview', .18, .15, .08, .14)
+        button_done    = make_button('Done', .18, .15, .28, .14)
+
+
+
+        button_cancel = make_bg_button('Cancel',.1, .1, .85, .02)
+        button_cancel.bind(on_press=self.go_to_callback('start'))
+
         screen.add_widget(label1)
         screen.add_widget(label2)
-        screen.add_widget(label3)
+        # screen.add_widget(label3)
         screen.add_widget(label4)      
         screen.add_widget(button_piano)
         screen.add_widget(button_guitar)
         screen.add_widget(button_violin)
         screen.add_widget(button_cello)
         screen.add_widget(button_bass)
-        screen.add_widget(button_sax)        
+        screen.add_widget(button_sax) 
+        screen.add_widget(button_preview) 
+        screen.add_widget(button_done)               
+        screen.add_widget(button_cancel)      
 
 
         self.add_widget(screen)
