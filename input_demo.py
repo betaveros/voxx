@@ -591,8 +591,8 @@ class MainMainWidget1(ScreenManager):
 
     def make_mood_screen_1(self):
         screen = ScreenWithBackground('mood1')
-        label = Label(text='Mood 1',
-                font_size = 300,
+        label = Label(text='Happy Mood',
+                font_size = 200,
                 size_hint=(.5, .3), pos_hint={'x':.25, 'y':.6},
                 color=(0, 0.5, 0.6, 1))
         button = Button(text='Record',
@@ -606,8 +606,8 @@ class MainMainWidget1(ScreenManager):
 
     def make_mood_screen_2(self):
         screen = ScreenWithBackground('mood2')
-        label = Label(text='Mood 2',
-                font_size = 300,
+        label = Label(text='Sad Mood',
+                font_size = 200,
                 size_hint=(.5, .3), pos_hint={'x':.25, 'y':.6},
                 color=(0, 0.5, 0.6, 1))
         button = Button(text='Record',
