@@ -565,9 +565,11 @@ black = (0.317, 0.321, 0.317,1)
 bright_blue = (0.160, 0.850, 1,1)
 
 
-def make_button(text, font_size, color, size_hint_x, size_hint_y, pos_hint_x, pos_hint_y, bg_color):
+def make_button(text, size_hint_x, size_hint_y, pos_hint_x, pos_hint_y, font_size=50, color=light_pink, bg_color=dark_teal):
     return Button(text=text, font_size=font_size, color=color, size_hint=(size_hint_x, size_hint_y), pos_hint={'x': pos_hint_x, 'y': pos_hint_y}, background_normal='', background_color=bg_color)
-    
+
+def make_bg_button(text, size_hint_x, size_hint_y, pos_hint_x, pos_hint_y, font_size=50):
+    return make_button(text, size_hint_x, size_hint_y, pos_hint_x, pos_hint_y, font_size, color=black, bg_color=background)
 
 class MainMainWidget1(ScreenManager):
 
@@ -615,23 +617,13 @@ class MainMainWidget1(ScreenManager):
                 size_hint=(.7, .3), pos_hint={'x':.15, 'y':.4},
                 color=dark_teal)
 
-        button1 = make_button('Set by Mood', 50, light_pink, .25, .15, .2, .25, dark_teal)
-        # button1 = Button(text='Set by Mood',
-        #         font_size = 50, color = light_pink,
-        #         size_hint=(.25, .15), pos_hint={'x':.2, 'y':.25},
-        #         background_normal='', background_color = dark_teal)
+        button1 = make_button('Set by Mood', .25, .15, .2, .25, 50)
         button1.bind(on_press=self.go_to_callback('mood1'))
 
-        button2 = Button(text='Set by Input',
-                font_size =50, color = light_pink,
-                size_hint=(.25, .15), pos_hint={'x':.55, 'y':.25},
-                background_normal = '', background_color = dark_teal)
+        button2 = make_button('Set by Input', .25, .15, .55, .25, 50)
         button2.bind(on_press=self.go_to_callback('mood1'))
 
-        button3 = Button(text='Skip Background Track',
-                font_size =40, color = black,
-                size_hint=(.25, .15), pos_hint={'x':.7, 'y':.04},
-                background_normal = '', background_color = background)
+        button3 = make_bg_button('Skip Background Track', .25, .15, .7, .04, 40)
         button3.bind(on_press=self.go_to_callback('instrument'))
 
         screen.add_widget(label1)
@@ -650,35 +642,16 @@ class MainMainWidget1(ScreenManager):
                 size_hint=(.5, .3), pos_hint={'x':.25, 'y':.6},
                 color=(0, 0.5, 0.6, 1))
 
-        button_happy = Button(text='Happy',
-                font_size = 50, color = light_pink,
-                size_hint=(.1, .15), pos_hint={'x':.2, 'y':.25},
-                background_normal='', background_color = dark_teal)
+        button_happy = make_button('Happy', .1, .15, .2, .25)
 
-        button_sad = Button(text='Sad',
-                font_size = 50, color = light_pink,
-                size_hint=(.1, .15), pos_hint={'x':.4, 'y':.25},
-                background_normal='', background_color = dark_teal)
+        button_sad = make_button('Sad', .1, .15, .4, .25)
 
-        button_epic = Button(text='Epic',
-                font_size = 50, color = light_pink,
-                size_hint=(.1, .15), pos_hint={'x':.6, 'y':.25},
-                background_normal='', background_color = dark_teal)
+        button_epic = make_button('Epic', .1, .15, .6, .25)
 
-        button_chill = Button(text='Chill',
-                font_size = 50, color = light_pink,
-                size_hint=(.1, .15), pos_hint={'x':.8, 'y':.25},
-                background_normal='', background_color = dark_teal)
+        button_chill = make_button('Chill', .1, .15, .8, .25)
 
-        button_back = Button(text='Back',
-                font_size = 50, color = black,
-                size_hint=(.1, .15), pos_hint={'x':.01, 'y':.02},
-                background_normal='', background_color = background)
-
-        button_next = Button(text='Next',
-                font_size = 50, color = black,
-                size_hint=(.1, .15), pos_hint={'x':.89, 'y':.02},
-                background_normal='', background_color = background)
+        button_back = make_bg_button('Back', .1, .15, .01, .02)
+        button_next = make_bg_button('Next', .1, .15, .89, .02)
 
         button_next.bind(on_press=self.go_to_callback('length'))
         button_back.bind(on_press=self.go_to_callback('start'))
@@ -698,20 +671,11 @@ class MainMainWidget1(ScreenManager):
                 font_size = 100,
                 size_hint=(.5, .3), pos_hint={'x':.25, 'y':.6},
                 color=(0, 0.5, 0.6, 1))
-        button_short = Button(text='Short\n (4 measures)',
-                font_size = 50, color = light_pink,
-                size_hint=(.2, .15), pos_hint={'x':.1, 'y':.25},
-                background_normal='', background_color = dark_teal)
+        button_short = make_button('Short\n (4 measures)', .2, .15, .1, .25)
 
-        button_mid = Button(text='Medium\n(6 measures)',
-                font_size = 50, color = light_pink,
-                size_hint=(.2, .15), pos_hint={'x':.4, 'y':.25},
-                background_normal='', background_color = dark_teal)
+        button_mid = make_button('Medium\n(6 measures)', .2, .15, .4, .25)
 
-        button_long = Button(text='Long\n (8 measures)',
-                font_size = 50, color = light_pink,
-                size_hint=(.2, .15), pos_hint={'x':.7, 'y':.25},
-                background_normal='', background_color = dark_teal)
+        button_long = make_button('Long\n (8 measures)', .2, .15, .7, .25)
 
         button_short.bind(on_press=self.go_to_callback('record'))
         button_mid.bind(on_press=self.go_to_callback('record'))
@@ -729,9 +693,7 @@ class MainMainWidget1(ScreenManager):
                 font_size = 300,
                 size_hint=(.5, .2), pos_hint={'x':.25, 'y':.7},
                 color=(0, 0.5, 0.6, 1))
-        play_button = Button(text='Play',
-                font_size = 300,
-                size_hint=(.5, .2), pos_hint={'x':.25, 'y':.5})
+        play_button = make_button('Play', .5, .2, .25, .5, 100)
         def play(instance):
             self.engine.play_lines(self.synth, self.sched)
         play_button.bind(on_press=play)
@@ -770,37 +732,12 @@ class MainMainWidget1(ScreenManager):
                 size_hint=(.18, .15), pos_hint={'x':.1, 'y':.5},
                 color=dark_teal)
 
-        button_piano = Button(text='Piano',
-                font_size = 50, color = light_pink,
-                size_hint=(.18, .15), pos_hint={'x':.5, 'y':.5},
-                background_normal='', background_color = dark_teal)
-
-        button_guitar = Button(text='Guitar',
-                font_size = 50, color = light_pink,
-                size_hint=(.18, .15), pos_hint={'x':.7, 'y':.5},
-                background_normal='', background_color = dark_teal)
-
-        button_violin = Button(text='Violin',
-                font_size = 50, color = light_pink,
-                size_hint=(.18, .15), pos_hint={'x':.5, 'y':.32},
-                background_normal='', background_color = dark_teal)
-
-        button_cello = Button(text='Cello',
-                font_size = 50, color = light_pink,
-                size_hint=(.18, .15), pos_hint={'x':.7, 'y':.32},
-                background_normal='', background_color = dark_teal)
-
-        button_bass = Button(text='Bass',
-                font_size = 50, color = light_pink,
-                size_hint=(.18, .15), pos_hint={'x':.5, 'y':.14},
-                background_normal='', background_color = dark_teal)
-
-        button_sax = Button(text='Saxophone',
-                font_size = 40, color = light_pink,
-                size_hint=(.18, .15), pos_hint={'x':.7, 'y':.14},
-                background_normal='', background_color = dark_teal)
-
-
+        button_piano  = make_button('Piano', .18, .15, .5, .5)
+        button_guitar = make_button('Guitar', .18, .15, .7, .5)
+        button_violin = make_button('Violin', .18, .15, .5, .32)
+        button_cello  = make_button('Cello', .18, .15, .7, .32)
+        button_bass   = make_button('Bass', .18, .15, .5, .14)
+        button_sax    = make_button('Saxophone', .18, .15, .7, .14)
 
         screen.add_widget(label1)
         screen.add_widget(label2)
