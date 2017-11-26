@@ -569,16 +569,18 @@ class MainMainWidget1(ScreenManager):
 
         label2 = Label(text='Set Background Track',
                 font_size = 70,
-                size_hint=(.7, .2), pos_hint={'x':.15, 'y':.45},
+                size_hint=(.7, .3), pos_hint={'x':.15, 'y':.4},
                 color=dark_teal)
 
         button1 = Button(text='Set by Mood',
-                size_hint=(.2, .15), pos_hint={'x':.2, 'y':.25},
+                font_size = 50,
+                size_hint=(.25, .15), pos_hint={'x':.2, 'y':.25},
                 background_color=dark_teal)
         button1.bind(on_press=self.go_to_callback('mood1'))
 
         button2 = Button(text='Set by Input',
-                size_hint=(.2, .15), pos_hint={'x':.6, 'y':.25},
+                font_size =50,
+                size_hint=(.25, .15), pos_hint={'x':.55, 'y':.25},
                 background_color=dark_teal)
         button2.bind(on_press=self.go_to_callback('mood1'))
 
