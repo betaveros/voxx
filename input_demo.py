@@ -566,19 +566,27 @@ class MainMainWidget1(ScreenManager):
                 font_size = 300,
                 size_hint=(.5, .3), pos_hint={'x':.25, 'y':.6},
                 color= dark_teal)
+
         label2 = Label(text='Set Background Track',
-                font_size = 100,
-                size_hint=(.7, .2), pos_hint={'x':.15, 'y':.4},
+                font_size = 70,
+                size_hint=(.7, .2), pos_hint={'x':.15, 'y':.45},
                 color=dark_teal)
 
-        button = Button(text='Set by Mood',
-                size_hint=(.5, .25), pos_hint={'x':.25, 'y':.25},
+        button1 = Button(text='Set by Mood',
+                size_hint=(.2, .15), pos_hint={'x':.2, 'y':.25},
                 background_color=dark_teal)
-        button.bind(on_press=self.go_to_callback('mood1'))
+        button1.bind(on_press=self.go_to_callback('mood1'))
+
+        button2 = Button(text='Set by Input',
+                size_hint=(.2, .15), pos_hint={'x':.6, 'y':.25},
+                background_color=dark_teal)
+        button2.bind(on_press=self.go_to_callback('mood1'))
 
         screen.add_widget(label1)
         screen.add_widget(label2)
-        screen.add_widget(button)
+        screen.add_widget(button1)
+        screen.add_widget(button2)
+
         self.add_widget(screen)
 
     def make_mood_screen_1(self):
