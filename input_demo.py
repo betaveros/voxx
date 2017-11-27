@@ -804,7 +804,9 @@ class MainMainWidget1(ScreenManager):
             text += u' + 1'
 
         if self.playing:
-            text = u'Playing ' + text + (u' ({})'.format(self.engine_playing_text) if self.engine_playing_text else '')
+            text = u'Playing ' + text
+        if self.playing or self.recording:
+            text += u' ({})'.format(self.engine_playing_text) if self.engine_playing_text else ''
         self.record_label.text = text
 
     def make_record_screen(self):
