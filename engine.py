@@ -111,7 +111,7 @@ class VoxxEngine(object):
         # writer.start()
         ret_data_list = []
 
-        cur_template = make_snap_template(self.chords[0][1:])
+        cur_template = make_snap_template(self.chords[0].notes)
         line_progress = [(0, 0)] * len(self.lines)
         chord_idx = 0
         chord_tick = 0
@@ -142,9 +142,9 @@ class VoxxEngine(object):
             tick += self.tick_unit
 
             chord_tick += self.tick_unit
-            if chord_tick >= self.chords[chord_idx][0]:
+            if chord_tick >= self.chords[chord_idx].duration:
                 chord_idx = (chord_idx + 1) % len(self.chords)
-                cur_template = make_snap_template(self.chords[chord_idx][1:])
+                cur_template = make_snap_template(self.chords[chord_idx].notes)
                 chord_tick = 0
 
             if include_chords:
