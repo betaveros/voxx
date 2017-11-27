@@ -334,7 +334,7 @@ class MainWidget1(BaseWidget) :
         self.cur_pitch = 0
         # self.chord_seq = chords_gen.chord_generater([1, 3, 6, 4, 2, 7], ['e', 'minor'], 240)[3]
         self.chord_seq = demo_chords.which
-        self.next_template = make_snap_template(self.chord_seq[0][1:])
+        self.next_template = make_snap_template(self.chord_seq[0].notes)
 
         self.recording_idx = 0
 
@@ -365,7 +365,7 @@ class MainWidget1(BaseWidget) :
         TICK_UNIT = self.get_quantization_unit()
 
 
-        cur_duration = self.chord_seq[ci][0]
+        cur_duration = self.chord_seq[ci].duration
         # vote on this next:
         if ct + TICK_UNIT < cur_duration:
             nci, nct = ci, ct + TICK_UNIT
@@ -388,7 +388,7 @@ class MainWidget1(BaseWidget) :
                     self.synth.noteon(CHANNEL, int(self.synth_note), 100)
             self.note_votes = Counter()
 
-        self.next_template = make_snap_template(self.chord_seq[nci][1:])
+        self.next_template = make_snap_template(self.chord_seq[nci].notes)
 
         self.sched.post_at_tick(tick + TICK_UNIT, self.next_note, (nci, nct))
 
@@ -805,17 +805,15 @@ class MainMainWidget1(ScreenManager):
         self.play_button.text = 'Stop' if self.playing else 'Play'
         self.record_button.text = 'Stop' if self.recording else 'Record'
 
-        text = '{} layer{}'.format(len(self.layers),
-                '' if len(self.layers) == 1 else 's')
+        text = u'{} layer{}'.format(len(self.layers),
+                u'' if len(self.layers) == 1 else u's')
         if self.recording:
-            text += ' + recording'
-        elif self.cur_layer.data is None:
-            text += ''
-        else:
-            text += ' + 1'
+            text += u' + recording'
+        elif self.cur_layer.data is not None:
+            text += u' + 1'
 
         if self.playing:
-            text = 'Playing ' + text
+            text = u'Playing ' + text + (u' ({})'.format(self.engine_playing_text) if self.engine_playing_text else '')
         self.record_label.text = text
 
     def make_record_screen(self):
@@ -830,13 +828,18 @@ class MainMainWidget1(ScreenManager):
         self.save_button = make_button('Save', .5, .1, .25, .5, 100)
         self.record_button = make_button('Record', .5, .1, .25, .4, 100)
 
+        self.engine_playing_text = ""
+        def engine_text_callback(text):
+            self.engine_playing_text = text
+            self.update_record_screen()
+
         def play(instance):
             if self.playing:
                 self.playing = False
                 self.engine_stop()
             else:
                 self.playing = True
-                self.engine_stop = self.engine.play_lines(self.synth, self.sched)
+                self.engine_stop = self.engine.play_lines(self.synth, self.sched, engine_text_callback)
                 layers = self.layers
                 if self.cur_layer.data is not None: layers = layers + [self.cur_layer]
                 for layer in layers:
@@ -862,7 +865,7 @@ class MainMainWidget1(ScreenManager):
             else:
                 self.input_buffers = []
                 self.recording = True
-                self.engine_stop = self.engine.play_lines(self.synth, self.sched)
+                self.engine_stop = self.engine.play_lines(self.synth, self.sched, engine_text_callback)
                 for layer in self.layers:
                     data_array = WaveArray(layer.data, 2)
                     instrument = layer.instrument

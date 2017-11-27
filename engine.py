@@ -57,6 +57,7 @@ class VoxxEngine(object):
         if False:
             self.chords = demo_chords.which
             self.lines = [demo_chords.baseline, demo_chords.guitar2, demo_chords.guitar3]
+            self.duration_texts = demo_chords.texts
         else:
             self.set_chords()
         # self.note_instrument = 40 # violin
@@ -64,7 +65,7 @@ class VoxxEngine(object):
         self.bpm = 120
         self.tick_unit = 80
 
-    def play_lines(self, synth, scheduler):
+    def play_lines(self, synth, scheduler, callback):
 
         stopper = [False]
 
@@ -77,14 +78,23 @@ class VoxxEngine(object):
         for line in self.lines:
             next_note_play(scheduler.get_tick(), (line, 0))
 
+        def next_text(tick, i):
+            if stopper[0]: return
+            dt = self.duration_texts[i]
+            callback(dt.text)
+            scheduler.post_at_tick(tick + dt.duration, next_text, (i + 1) % (len(self.duration_texts)))
+
+        next_text(scheduler.get_tick(), 0)
+
         def stop_callback():
             stopper[0] = True
         return stop_callback
 
     def set_chords(self, chords=[1, 3, 6, 4, 2, 7], key=['e', 'minor'], rhythm=240):
         c = chords_gen.chord_generater(chords, key, rhythm)
-        self.chords = c[-1]
-        self.lines = c[:-1]
+        self.lines = c[:-2]
+        self.chords = c[-2]
+        self.duration_texts = c[-1]
 
     def process(self, buf, note_instrument, include_chords = False):
 

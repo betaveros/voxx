@@ -21,6 +21,8 @@ EMOTION = [""]
 pitch_dic = {'c': 60, 'd': 62, 'e': 64, 'f': 65, 'g': 67, 'a': 69, 'b': 71}
 MAJOR = [0, 2, 4, 5, 7, 9, 11]
 MINOR = [0, 2, 3, 5, 7, 8, 10]
+MAJOR_NUMERALS = u'I ii iii IV V vi vii\u00b0'.split()
+MINOR_NUMERALS = u'i ii\u00b0 III iv v VI VII'.split()
 
 WHOLE = [[1920]]
 HALF = [[960, 960]]
@@ -31,6 +33,15 @@ RHYTHM = {1920: WHOLE, 960: HALF, 480: QUA, 240: EIGHTH}
 
 
 
+class Chord(object):
+	def __init__(self, duration, notes):
+		self.duration = duration
+		self.notes = notes
+
+class DurationText(object):
+	def __init__(self, duration, text):
+		self.duration = duration
+		self.text = text
 
 # Test NoteSequencer: a class that plays a single sequence of notes.
 #240 ticks: eighth note, 
@@ -38,12 +49,15 @@ RHYTHM = {1920: WHOLE, 960: HALF, 480: QUA, 240: EIGHTH}
 #chords is a list of chord progressions [1,4,5,1], each number stands for one measure
 #key is a list of strings representing the key, eg: ['c', 'major']
 # rhythm is a number stands for the fastest note in the progression eg: 120, 240, 480, 960
+
 def chord_generater(chords, key, rhythm):
 	starting_note = pitch_dic[key[0]]
 	if key[1] == 'major':
 		scale = MAJOR
+		numerals = MAJOR_NUMERALS
 	else:
 		scale = MINOR
+		numerals = MINOR_NUMERALS
 	scale_notes = []
 	for pmt in scale:
 		scale_notes.append(starting_note + pmt)
@@ -51,10 +65,12 @@ def chord_generater(chords, key, rhythm):
 	top_line= []
 	mid_line = []
 	root_line = []
+	names = []
 	for chord in chords:
 		top_line.append(scale_notes[(chord + 3) % 7])
 		mid_line.append(scale_notes[(chord + 1) % 7])
 		root_line.append(scale_notes[(chord -1) % 7])
+		names.append(numerals[(chord - 1) % 7])
 	print("top notes", top_line)
 	print("mid notes", mid_line)
 	print("rt notes", root_line)
@@ -64,17 +80,17 @@ def chord_generater(chords, key, rhythm):
 	top_dur_pitch =  []
 	middle_dur_pitch =  []
 	root_dur_pitch =  []
-	which = []
+	chords = []
+	duration_texts = []
 	for x in range(len(top_line)):
 		for note in one_measure:
 			top_dur_pitch.append([note, top_line[x]])
 			middle_dur_pitch.append([note, mid_line[x]])
 			root_dur_pitch.append([note, root_line[x]])
-			which.append([note, top_line[x], mid_line[x], root_line[x]])
+			chords.append(Chord(note, (top_line[x], mid_line[x], root_line[x])))
+			duration_texts.append(DurationText(note, names[x]))
 
-	return [top_dur_pitch, middle_dur_pitch, root_dur_pitch, which]
-
-
+	return [top_dur_pitch, middle_dur_pitch, root_dur_pitch, chords, duration_texts]
 
 #emotion is a string representing the emotion: eg: 'happy', 'sad'
 #measure is a number 
