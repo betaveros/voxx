@@ -763,23 +763,19 @@ class MainMainWidget1(ScreenManager):
                 foreground_color = dark_teal,
                 cursor_color = dark_teal)
 
-        def instrument_setter(num):
+        def add_instrument_button(num, name, sx, sy, px, py):
             def cb(instance):
                 self.instrument_input.text = str(num)
-            return cb
+            button = make_button(name, sx, sy, px, py)
+            button.bind(on_press=cb)
+            screen.add_widget(button)
 
-        button_piano  = make_button('Piano', .18, .15, .5, .5)
-        button_piano.bind(on_press=instrument_setter(0))
-        button_guitar = make_button('Guitar', .18, .15, .7, .5)
-        button_guitar.bind(on_press=instrument_setter(24))
-        button_violin = make_button('Violin', .18, .15, .5, .32)
-        button_violin.bind(on_press=instrument_setter(40))
-        button_cello  = make_button('Cello', .18, .15, .7, .32)
-        button_cello.bind(on_press=instrument_setter(42))
-        button_bass   = make_button('Bass', .18, .15, .5, .14)
-        button_bass.bind(on_press=instrument_setter(32))
-        button_sax    = make_button('Saxophone', .18, .15, .7, .14)
-        button_sax.bind(on_press=instrument_setter(65))
+        add_instrument_button( 0, 'Piano'    , .18, .15, .5,  .5)
+        add_instrument_button(24, 'Guitar'   , .18, .15, .7,  .5)
+        add_instrument_button(40, 'Violin'   , .18, .15, .5, .32)
+        add_instrument_button(42, 'Cello'    , .18, .15, .7, .32)
+        add_instrument_button(32, 'Bass'     , .18, .15, .5, .14)
+        add_instrument_button(65, 'Saxophone', .18, .15, .7, .14)
 
         button_preview = make_button('Preview', .18, .15, .08, .14, bg_color = darker_teal)
         button_done    = make_button('Done', .18, .15, .28, .14, bg_color = darker_teal)
@@ -793,12 +789,6 @@ class MainMainWidget1(ScreenManager):
         screen.add_widget(label2)
         screen.add_widget(label3)
         screen.add_widget(self.instrument_input)
-        screen.add_widget(button_piano)
-        screen.add_widget(button_guitar)
-        screen.add_widget(button_violin)
-        screen.add_widget(button_cello)
-        screen.add_widget(button_bass)
-        screen.add_widget(button_sax) 
         screen.add_widget(button_preview) 
         screen.add_widget(button_done)               
         screen.add_widget(button_cancel)      
