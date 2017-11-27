@@ -588,6 +588,15 @@ class MainMainWidget1(ScreenManager):
         self.mood = None
         self.measure_length = None
 
+        self.playing = False
+        self.recording = False
+        self.input_buffers = []
+        self.layers = []
+        self.cur_layer = Layer(40, None)
+
+        self.channel_select = 0
+
+
         self.make_start_screen()
 
         self.make_mood_screen_1()
@@ -615,17 +624,9 @@ class MainMainWidget1(ScreenManager):
         self.mixer.add(self.synth)
         self.mixer.add(self.sched)
 
-        
+
 
         self.audio.set_generator(self.mixer)
-
-        self.playing = False
-        self.recording = False
-        self.input_buffers = []
-        self.layers = []
-        self.cur_layer = Layer(40, None)
-
-        self.channel_select = 0
 
         Clock.schedule_interval(self.on_update, 0)
 
@@ -820,7 +821,7 @@ class MainMainWidget1(ScreenManager):
     def make_record_screen(self):
         screen = ScreenWithBackground('record')
 
-        self.record_label = Label(text='Record...',
+        self.record_label = Label(text='...',
                 font_size = 100,
                 size_hint=(.5, .3), pos_hint={'x':.25, 'y':.6},
 
@@ -890,13 +891,10 @@ class MainMainWidget1(ScreenManager):
 
         self.graph_widget = GraphDisplayWidget(
                 size_hint=(.5, .3), pos_hint={'x':.25, 'y':.2})
-        self.graph_widget.graph.add_point(59)
-        self.graph_widget.graph.add_point(60)
-        self.graph_widget.graph.add_point(60)
-        self.graph_widget.graph.add_point(60)
         screen.add_widget(self.graph_widget)
         self.add_widget(screen)
 
+        self.update_record_screen()
 
     def go_to_callback(self, name):
         def callback(instance):
