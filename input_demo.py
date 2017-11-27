@@ -792,7 +792,7 @@ class MainMainWidget1(ScreenManager):
 
         self.play_button.disabled = self.recording
         self.record_button.disabled = self.playing
-        self.save_button.disabled = self.playing or self.recording
+        self.save_button.disabled = self.playing or self.recording or self.cur_layer.data is None
         self.play_button.text = 'Stop' if self.playing else 'Play'
         self.record_button.text = 'Stop' if self.recording else 'Record'
 
