@@ -824,20 +824,29 @@ class MainMainWidget1(ScreenManager):
             self.engine_playing_text = text
             self.update_record_screen()
 
+        def stop_layers():
+            self.mixer.remove(self.layers_mixer)
+            del self.layers_mixer
+        def play_layers(layers):
+            self.layers_mixer = Mixer()
+            for layer in layers:
+                data_array = WaveArray(layer.data, 2)
+                instrument = layer.instrument
+                processed = self.engine.process(data_array, instrument)
+                self.layers_mixer.add(WaveGenerator(WaveArray(processed, 2)))
+            self.mixer.add(self.layers_mixer)
+
         def play(instance):
             if self.playing:
                 self.playing = False
                 self.engine_stop()
+                stop_layers()
             else:
                 self.playing = True
                 self.engine_stop = self.engine.play_lines(self.synth, self.sched, engine_text_callback)
                 layers = self.layers
                 if self.cur_layer.data is not None: layers = layers + [self.cur_layer]
-                for layer in layers:
-                    data_array = WaveArray(layer.data, 2)
-                    instrument = layer.instrument
-                    processed = self.engine.process(data_array, instrument)
-                    self.mixer.add(WaveGenerator(WaveArray(processed, 2)))
+                play_layers(layers)
 
             self.update_record_screen()
 
@@ -852,16 +861,13 @@ class MainMainWidget1(ScreenManager):
             if self.recording:
                 self.recording = False
                 self.engine_stop()
+                stop_layers()
                 self.cur_layer.data = combine_buffers(self.input_buffers)
             else:
                 self.input_buffers = []
                 self.recording = True
                 self.engine_stop = self.engine.play_lines(self.synth, self.sched, engine_text_callback)
-                for layer in self.layers:
-                    data_array = WaveArray(layer.data, 2)
-                    instrument = layer.instrument
-                    processed = self.engine.process(data_array, instrument)
-                    self.mixer.add(WaveGenerator(WaveArray(processed, 2)))
+                play_layers(self.layers)
 
             self.update_record_screen()
 
