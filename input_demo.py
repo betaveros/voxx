@@ -671,13 +671,15 @@ class MainMainWidget1(ScreenManager):
                 size_hint=(.5, .3), pos_hint={'x':.25, 'y':.6},
                 color=(0, 0.5, 0.6, 1))
 
-        button_happy = make_button('Happy', .1, .15, .2, .25)
+        def add_mood_button(name, sx, sy, px, py, chords, key):
+            button = make_button(name, sx, sy, px, py)
+            button.bind(on_press=self.mood_callback(button, chords, key))
+            screen.add_widget(button)
 
-        button_sad = make_button('Sad', .1, .15, .4, .25)
-
-        button_epic = make_button('Epic', .1, .15, .6, .25)
-
-        button_chill = make_button('Chill', .1, .15, .8, .25)
+        add_mood_button('Happy', .15, .15, .08, .25, [1, 5, 6, 4], ['c', 'major'])
+        add_mood_button('Sad'  , .15, .15, .31, .25, [1, 3, 6, 4, 2, 7], ['e', 'minor'])
+        add_mood_button('Epic' , .15, .15, .54, .25, [4, 1, 6, 5], ['d', 'major'])
+        add_mood_button('Chill', .15, .15, .77, .25, [1, 7, 6, 5], ['f', 'minor'])
 
         button_back = make_bg_button('Back', .1, .15, .01, .02)
         button_next = make_bg_button('Next', .1, .15, .89, .02)
@@ -685,18 +687,7 @@ class MainMainWidget1(ScreenManager):
         button_next.bind(on_press=self.go_to_callback('length'))
         button_back.bind(on_press=self.go_to_callback('start'))
 
-        button_happy.bind(on_press=self.mood_callback(button_happy))
-        button_sad.bind(on_press=self.mood_callback(button_sad))
-        button_epic.bind(on_press=self.mood_callback(button_epic))
-        button_chill.bind(on_press=self.mood_callback(button_chill))
-
-
-
         screen.add_widget(label)
-        screen.add_widget(button_happy)
-        screen.add_widget(button_sad)
-        screen.add_widget(button_epic)
-        screen.add_widget(button_chill)
         screen.add_widget(button_back)
         screen.add_widget(button_next)
         self.add_widget(screen)
@@ -920,7 +911,7 @@ class MainMainWidget1(ScreenManager):
                 self.input_mode = button
         return callback
 
-    def mood_callback(self,button):
+    def mood_callback(self, button, chords, key):
         def callback(instance):
             if self.mood == None:
                 button.background_color = coral
@@ -930,6 +921,8 @@ class MainMainWidget1(ScreenManager):
                 self.mood.background_color = dark_teal
                 button.background_color = coral
                 self.mood = button
+
+            self.engine.set_chords(chords, key)
         return callback
 
     def measure_callback(self, button):
