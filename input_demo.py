@@ -806,10 +806,26 @@ class MainMainWidget1(ScreenManager):
 
         self.add_widget(screen)
 
-    def update_record_label(self):
-        self.record_label.text = 'Record ({} layer{}{})'.format(len(self.layers),
-                '' if len(self.layers) == 1 else 's',
-                '' if self.cur_layer.data is None else ' + 1')
+    def update_record_screen(self):
+
+        self.play_button.disabled = self.recording
+        self.record_button.disabled = self.playing
+        self.save_button.disabled = self.playing or self.recording
+        self.play_button.text = 'Stop' if self.playing else 'Play'
+        self.record_button.text = 'Stop' if self.recording else 'Record'
+
+        text = '{} layer{}'.format(len(self.layers),
+                '' if len(self.layers) == 1 else 's')
+        if self.recording:
+            text += ' + recording'
+        elif self.cur_layer.data is None:
+            text += ''
+        else:
+            text += ' + 1'
+
+        if self.playing:
+            text = 'Playing ' + text
+        self.record_label.text = text
 
     def make_record_screen(self):
         screen = ScreenWithBackground('record')
@@ -819,9 +835,9 @@ class MainMainWidget1(ScreenManager):
                 size_hint=(.5, .3), pos_hint={'x':.25, 'y':.6},
 
                 color=(0, 0.5, 0.6, 1))
-        play_button = make_button('Play', .5, .1, .25, .6, 100)
-        save_button = make_button('Save', .5, .1, .25, .5, 100)
-        record_button = make_button('Record', .5, .1, .25, .4, 100)
+        self.play_button = make_button('Play', .5, .1, .25, .6, 100)
+        self.save_button = make_button('Save', .5, .1, .25, .5, 100)
+        self.record_button = make_button('Record', .5, .1, .25, .4, 100)
 
         def play(instance):
             if self.playing:
@@ -838,14 +854,14 @@ class MainMainWidget1(ScreenManager):
                     processed = self.engine.process(data_array, instrument)
                     self.mixer.add(WaveGenerator(WaveArray(processed, 2)))
 
-            self.update_record_label()
+            self.update_record_screen()
 
         def save(instance):
             if self.cur_layer.data is not None:
                 self.layers.append(self.cur_layer)
                 self.cur_layer = Layer(int(self.instrument_input.text), None)
 
-            self.update_record_label()
+            self.update_record_screen()
 
         def record(instance):
             if self.recording:
@@ -862,13 +878,12 @@ class MainMainWidget1(ScreenManager):
                     processed = self.engine.process(data_array, instrument)
                     self.mixer.add(WaveGenerator(WaveArray(processed, 2)))
 
-            self.update_record_label()
+            self.update_record_screen()
 
-        play_button.bind(on_press=play)
-        save_button.bind(on_press=save)
-        record_button.bind(on_press=record)
+        self.play_button.bind(on_press=play)
+        self.save_button.bind(on_press=save)
+        self.record_button.bind(on_press=record)
 
-        
         button_instrument = make_button('Change Instrument', .18, .15, .8, .8, 30)
         button_instrument.bind(on_press=self.go_to_callback('instrument'))
 
@@ -876,9 +891,9 @@ class MainMainWidget1(ScreenManager):
         button_cancel.bind(on_press=self.go_to_callback('start'))
 
         screen.add_widget(self.record_label)
-        screen.add_widget(play_button)
-        screen.add_widget(save_button)
-        screen.add_widget(record_button)
+        screen.add_widget(self.play_button)
+        screen.add_widget(self.save_button)
+        screen.add_widget(self.record_button)
         screen.add_widget(button_cancel)
         screen.add_widget(button_instrument)
 
