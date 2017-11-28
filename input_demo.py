@@ -666,8 +666,8 @@ class MainMainWidget1(ScreenManager):
 
     def make_mood_screen_1(self):
         screen = ScreenWithBackground('mood1')
-        label = Label(text='Choose A Mood',
-                font_size = 200,
+        label = Label(text='What mood would you like today?',
+                font_size = 100,
                 size_hint=(.5, .3), pos_hint={'x':.25, 'y':.6},
                 color=(0, 0.5, 0.6, 1))
 
@@ -676,10 +676,10 @@ class MainMainWidget1(ScreenManager):
             button.bind(on_press=self.mood_callback(button, chords, key))
             screen.add_widget(button)
 
-        add_mood_button('Happy', .15, .15, .08, .25, [1, 5, 6, 4], ['c', 'major'])
-        add_mood_button('Sad'  , .15, .15, .31, .25, [1, 3, 6, 4, 2, 7], ['e', 'minor'])
-        add_mood_button('Epic' , .15, .15, .54, .25, [4, 1, 6, 5], ['d', 'major'])
-        add_mood_button('Chill', .15, .15, .77, .25, [1, 7, 6, 5], ['f', 'minor'])
+        add_mood_button('Happy', .15, .15, .08, .4, [1, 5, 6, 4], ['c', 'major'])
+        add_mood_button('Sad'  , .15, .15, .31, .4, [1, 3, 6, 4, 2, 7], ['e', 'minor'])
+        add_mood_button('Epic' , .15, .15, .54, .4, [4, 1, 6, 5], ['d', 'major'])
+        add_mood_button('Chill', .15, .15, .77, .4, [1, 7, 6, 5], ['f', 'minor'])
 
         button_back = make_bg_button('Back', .1, .15, .01, .02)
         button_next = make_bg_button('Next', .1, .15, .89, .02)
@@ -694,16 +694,21 @@ class MainMainWidget1(ScreenManager):
 
     def make_progression_screen(self):
         screen = ScreenWithBackground('length')
-        label = Label(text='Set Progression Length',
-                font_size = 100,
-                size_hint=(.5, .3), pos_hint={'x':.25, 'y':.8},
+        label1 = Label(text='Almost done!',
+                font_size = 150,
+                size_hint=(.5, .3), pos_hint={'x':.25, 'y':.7},
                 color=(0, 0.5, 0.6, 1))
 
-        button_short = make_button('Short\n (4 measures)', .2, .15, .1, .25)
+        label2 = Label(text='Set length of the background loop',
+                font_size = 80,
+                size_hint=(.5, .3), pos_hint={'x':.25, 'y':.5},
+                color=(0, 0.5, 0.6, 1))
 
-        button_mid = make_button('Medium\n(6 measures)', .2, .15, .4, .25)
+        button_short = make_button('Short\n (4 measures)', .2, .15, .1, .3)
 
-        button_long = make_button('Long\n (8 measures)', .2, .15, .7, .25)
+        button_mid = make_button('Medium\n(6 measures)', .2, .15, .4, .3)
+
+        button_long = make_button('Long\n (8 measures)', .2, .15, .7, .3)
 
         button_back = make_bg_button('Back', .1, .15, .01, .02)
 
@@ -716,7 +721,8 @@ class MainMainWidget1(ScreenManager):
         button_back.bind(on_press=self.go_to_callback('mood1'))
 
 
-        screen.add_widget(label)
+        screen.add_widget(label1)
+        screen.add_widget(label2)
         screen.add_widget(button_short)
         screen.add_widget(button_mid)
         screen.add_widget(button_long)
