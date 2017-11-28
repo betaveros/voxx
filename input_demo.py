@@ -603,7 +603,7 @@ class MainMainWidget1(ScreenManager):
         self.make_progression_screen()
 
         self.make_input_screen()
-        #self.make_rhythm_screen()
+        self.make_rhythm_screen()
 
         self.make_record_screen()
 
@@ -798,7 +798,7 @@ class MainMainWidget1(ScreenManager):
         button_back = make_bg_button('Back', .1, .15, .01, .02)
         button_next = make_bg_button('Next', .1, .15, .89, .02)
 
-        button_next.bind(on_press=self.go_to_callback('instrument'))
+        button_next.bind(on_press=self.go_to_callback('rhythm'))
         button_back.bind(on_press=self.go_to_callback('start'))
 
 
@@ -824,6 +824,48 @@ class MainMainWidget1(ScreenManager):
         screen.add_widget(button_next)
 
         self.add_widget(screen)    
+
+    def make_rhythm_screen(self):
+        screen = ScreenWithBackground('rhythm')
+        label1 = Label(text='What rhythm would you like?',
+                font_size = 100,
+                size_hint=(.5, .3), pos_hint={'x':.25, 'y':.7},
+                color=dark_teal)
+
+        label2 = Label(text='Select the fastest notes you want in your chord',
+                font_size = 50,
+                size_hint=(.6, .2), pos_hint={'x':.2, 'y':.56},
+                color=dark_teal)
+
+        button_slow = make_button('Slow\n (1/4 note)', .2, .15, .1, .4)
+
+        button_mid = make_button('Medium\n(1/8 note)', .2, .15, .4, .4)
+
+        button_fast = make_button('Fast\n (1/16 note)', .2, .15, .7, .4)
+
+        button_preview = make_button('Preview', .2, .15, 0.41, 0.03)
+
+        button_back = make_bg_button('Back', .1, .15, .01, .02)
+
+        button_next = make_bg_button('Next', .1, .15, .89, .02)
+
+        button_slow.bind(on_press=self.measure_callback(button_slow))
+        button_mid.bind(on_press=self.measure_callback(button_mid))
+        button_fast.bind(on_press=self.measure_callback(button_fast))
+        button_fast.bind(on_press=self.measure_callback(button_preview))
+        button_next.bind(on_press=self.go_to_callback('instrument'))
+        button_back.bind(on_press=self.go_to_callback('input'))
+
+
+        screen.add_widget(label1)
+        screen.add_widget(label2)
+        screen.add_widget(button_slow)
+        screen.add_widget(button_mid)
+        screen.add_widget(button_fast)
+        screen.add_widget(button_preview)
+        screen.add_widget(button_back)
+        screen.add_widget(button_next)
+        self.add_widget(screen)
 
 
     def make_instrument_screen(self):
