@@ -602,7 +602,7 @@ class MainMainWidget1(ScreenManager):
         self.make_mood_screen_1()
         self.make_progression_screen()
 
-        #self.make_input_screen()
+        self.make_input_screen()
         #self.make_rhythm_screen()
 
         self.make_record_screen()
@@ -646,7 +646,7 @@ class MainMainWidget1(ScreenManager):
         button1.bind(on_press=self.go_to_callback('mood1'))
 
         button2 = make_button('Set by Input', .25, .15, .55, .25, 50)
-        button2.bind(on_press=self.go_to_callback('mood1'))
+        button2.bind(on_press=self.go_to_callback('input'))
 
         button3 = make_bg_button('Skip Background Track', .25, .15, .7, .04, 40)
         button3.bind(on_press=self.go_to_callback('record'))
@@ -697,12 +697,12 @@ class MainMainWidget1(ScreenManager):
         label1 = Label(text='Almost done!',
                 font_size = 150,
                 size_hint=(.5, .3), pos_hint={'x':.25, 'y':.7},
-                color=(0, 0.5, 0.6, 1))
+                color=dark_teal)
 
         label2 = Label(text='Set length of the background loop',
                 font_size = 80,
                 size_hint=(.5, .3), pos_hint={'x':.25, 'y':.5},
-                color=(0, 0.5, 0.6, 1))
+                color=dark_teal)
 
         button_short = make_button('Short\n (4 measures)', .2, .15, .1, .3)
 
@@ -733,6 +733,98 @@ class MainMainWidget1(ScreenManager):
     def finish_set_instrument(self, instance):
         self.cur_layer.instrument = int(self.instrument_input.text)
         self.current = 'record'
+
+    def make_input_screen(self):
+        screen = ScreenWithBackground('input')
+        label1 = Label(text='A few things first',
+                font_size = 150,
+                size_hint=(.5, .3), pos_hint={'x':.25, 'y':.7},
+                color= dark_teal)
+
+        label2 = Label(text='for your masterpiece',
+                font_size = 80,
+                size_hint=(.5, .3), pos_hint={'x':.25, 'y':.55},
+                color=dark_teal)
+
+
+        label3 = Label(text='Set Tempo:',
+                font_size = 80,
+                size_hint=(.3, .1), pos_hint={'x':.1, 'y':.5},
+                color= dark_teal)
+
+        label4 = Label(text='Set Key:',
+                font_size = 80,
+                size_hint=(.3, .1), pos_hint={'x':.1, 'y':.38},
+                color= dark_teal)
+
+        label5 = Label(text='Set Chords:',
+                font_size = 80,
+                size_hint=(.3, .1), pos_hint={'x':.1, 'y':.26},
+                color= dark_teal)
+
+        label6 = Label(text='BPM',
+                font_size = 60,
+                size_hint=(.3, .05), pos_hint={'x':.51, 'y':.5},
+                color= dark_teal)
+        
+        self.instrument_input1 = IntInput(
+                text = '120', #default bpm
+                font_size = 100,
+                color = dark_teal,
+                size_hint=(.2, .1), pos_hint={'x':.4, 'y':.5}, 
+                background_normal = '', background_color = light_pink,
+                foreground_color = dark_teal,
+                cursor_color = dark_teal)
+
+        self.instrument_input2 = IntInput(
+                text = 'C', 
+                font_size = 100,
+                color = dark_teal,
+                size_hint=(.2, .1), pos_hint={'x':.4, 'y':.38}, 
+                background_normal = '', background_color = light_pink,
+                foreground_color = dark_teal,
+                cursor_color = dark_teal)
+
+        self.instrument_input3 = IntInput(
+                text = '1,4,5,1', 
+                font_size = 100,
+                color = dark_teal,
+                size_hint=(.5, .1), pos_hint={'x':.4, 'y':.26}, 
+                background_normal = '', background_color = light_pink,
+                foreground_color = dark_teal,
+                cursor_color = dark_teal)
+
+
+        button_back = make_bg_button('Back', .1, .15, .01, .02)
+        button_next = make_bg_button('Next', .1, .15, .89, .02)
+
+        button_next.bind(on_press=self.go_to_callback('instrument'))
+        button_back.bind(on_press=self.go_to_callback('start'))
+
+
+        button_major = make_button('Major', .13, .1, .62, .38)
+        button_minor = make_button('Minor', .13, .1, .78, .38)
+
+        button_major.bind(on_press=self.measure_callback(button_major))
+        button_minor.bind(on_press=self.measure_callback(button_minor))
+
+
+        screen.add_widget(label1)
+        screen.add_widget(label2)
+        screen.add_widget(label3)
+        screen.add_widget(label4)
+        screen.add_widget(label5)
+        screen.add_widget(label6)
+        screen.add_widget(self.instrument_input1)
+        screen.add_widget(self.instrument_input2)
+        screen.add_widget(self.instrument_input3)
+        screen.add_widget(button_major) 
+        screen.add_widget(button_minor)       
+        screen.add_widget(button_back)
+        screen.add_widget(button_next)
+
+        self.add_widget(screen)    
+
 
     def make_instrument_screen(self):
         screen = ScreenWithBackground('instrument')
