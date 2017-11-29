@@ -713,15 +713,15 @@ class MainMainWidget1(ScreenManager):
                 size_hint=(.5, .3), pos_hint={'x':.25, 'y':.6},
                 color=(0, 0.5, 0.6, 1))
 
-        def add_mood_button(name, sx, sy, px, py, chords, key):
+        def add_mood_button(name, sx, sy, px, py, chords, key, rhythm):
             button = make_button(name, sx, sy, px, py)
-            button.bind(on_press=self.mood_callback(button, chords, key))
+            button.bind(on_press=self.mood_callback(button, chords, key, rhythm))
             screen.add_widget(button)
 
-        add_mood_button('Happy', .15, .15, .08, .4, [1, 5, 6, 4], ['c', 'major'])
-        add_mood_button('Sad'  , .15, .15, .31, .4, [1, 3, 6, 4, 2, 7], ['e', 'minor'])
-        add_mood_button('Epic' , .15, .15, .54, .4, [4, 1, 6, 5], ['d', 'major'])
-        add_mood_button('Chill', .15, .15, .77, .4, [1, 7, 6, 5], ['f', 'minor'])
+        add_mood_button('Happy', .15, .15, .08, .4, [1, 5, 6, 4], ['c', 'major'], 240)
+        add_mood_button('Sad'  , .15, .15, .31, .4, [1, 3, 6, 4, 2, 7], ['e', 'minor'], 960)
+        add_mood_button('Epic' , .15, .15, .54, .4, [4, 1, 6, 5], ['d', 'major'], 240)
+        add_mood_button('Chill', .15, .15, .77, .4, [1, 7, 6, 5], ['f', 'minor'], 480)
 
         button_back = make_bg_button('Back', .1, .15, .01, .02)
         button_next = make_bg_button('Next', .1, .15, .89, .02)
@@ -1072,7 +1072,7 @@ class MainMainWidget1(ScreenManager):
                 self.input_mode = button
         return callback
 
-    def mood_callback(self, button, chords, key):
+    def mood_callback(self, button, chords, key, rhythm):
         def callback(instance):
             if self.mood == None:
                 button.background_color = coral
@@ -1086,7 +1086,7 @@ class MainMainWidget1(ScreenManager):
             self.chords_input.text = ','.join(str(c) for c in chords)
             key_bass, key_mode = key
             self.key_input.text = key_bass
-            self.engine.set_chords(chords, key)
+            self.engine.set_chords(chords, key, rhythm)
         return callback
 
     def receive_audio(self, frames, num_channels) :
