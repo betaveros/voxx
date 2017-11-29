@@ -40,16 +40,22 @@ def push_near(anchor, pitch, max_jump):
     while pitch < anchor - max_jump: pitch += 12
     return pitch
 
-def majority_pitch(pitch_detector, mono_frame_array, template):
-    note_votes = Counter()
+def pitch_segments(pitch_detector, mono_frame_array):
     mi = 0
     WINDOW = 1024
+    ret = []
     while mi < mono_frame_array.size:
         cur_slice = mono_frame_array[mi:mi + WINDOW]
         pitch = pitch_detector.write(cur_slice)
         mi += WINDOW
+        ret.append((pitch, cur_slice.size))
+    return ret
+
+def majority_pitch(pitch_segments, template):
+    note_votes = Counter()
+    for pitch, weight in pitch_segments:
         cur_note = snap_to_template(pitch, template)
-        note_votes[cur_note] += cur_slice.size
+        note_votes[cur_note] += weight
     return max(note_votes.items(), key=lambda x: x[1])[0]
 
 class VoxxEngine(object):
@@ -118,6 +124,10 @@ class VoxxEngine(object):
         if chords_gain is not None:
             for line in self.lines:
                 synth.noteon(CHORD_CHANNEL, line[0][0], chords_gain)
+
+        raw_pitch_segments = []
+        processed_pitch_segments = []
+
         last_pitch = 0
         while True:
             frame = int(round(Audio.sample_rate * 60.0 / self.bpm * tick / kTicksPerQuarter))
@@ -126,8 +136,12 @@ class VoxxEngine(object):
             unknown_slice = buf.get_frames(frame, end_frame)
             if not unknown_slice.size: break
             mono_slice = unknown_slice[::buf.get_num_channels()]
-            cur_pitch = majority_pitch(pitch, mono_slice, cur_template)
+            segments = pitch_segments(pitch, mono_slice)
+            cur_pitch = majority_pitch(segments, cur_template)
             print(cur_pitch)
+
+            raw_pitch_segments.extend(segments)
+            processed_pitch_segments.append((cur_pitch, mono_slice.size))
 
             if last_pitch != cur_pitch:
                 if last_pitch:
@@ -157,7 +171,7 @@ class VoxxEngine(object):
                         note_tick = 0
                     line_progress[i] = (note_idx, note_tick)
 
-        return combine_buffers(ret_data_list)
+        return combine_buffers(ret_data_list), raw_pitch_segments, processed_pitch_segments
 
 if __name__ == "__main__":
     infile = WaveFile('solo_test_files/solo_test_60bpm_la_connected.wav')

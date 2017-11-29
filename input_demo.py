@@ -275,6 +275,53 @@ class GraphDisplayWidget(BaseWidget):
     def redraw(self, x, y):
         self.graph.set_pos(self.pos)
 
+class SegmentsDisplay(InstructionGroup):
+    def __init__(self, pos, height, x_scale, segments, in_range, color):
+        super(SegmentsDisplay, self).__init__()
+
+        self.height = height
+        self.x_scale = x_scale
+        self.range = in_range
+
+        self.translate = Translate(*pos)
+        self.line = Line( width = 1.5 )
+        self.add(PushMatrix())
+        self.add(self.translate)
+        self.add(Color(*color))
+        self.add(self.line)
+        self.add(PopMatrix())
+
+        self.set_segments(segments)
+
+    def set_segments(self, segments):
+        points = [0] * (4*len(segments))
+
+        x = 0
+        for i, (val, length) in enumerate(segments):
+            j = i * 4
+            y = int(np.interp(val, self.range, (0, self.height)))
+            points[j] = x
+            points[j+1] = y
+            x += self.x_scale * length
+            points[j+2] = x
+            points[j+3] = y
+
+        self.line.points = points
+
+    def set_pos(self, pos):
+        self.translate.xy = pos
+
+class SegmentsDisplayWidget(BaseWidget):
+    def __init__(self, **kwargs):
+        super(SegmentsDisplayWidget, self).__init__(**kwargs)
+
+        self.display = SegmentsDisplay(self.pos, 300, 0.002, [(0, 0)], (30, 90), kwargs['color'])
+        self.canvas.add(self.display)
+        self.bind(pos=self.redraw)
+
+    def redraw(self, x, y):
+        self.display.set_pos(self.pos)
+
 class MainWidget1(BaseWidget) :
     def __init__(self):
         super(MainWidget1, self).__init__()
@@ -1012,8 +1059,10 @@ class MainMainWidget1(ScreenManager):
             for layer in layers:
                 data_array = WaveArray(layer.data, 2)
                 instrument = layer.instrument
-                processed = self.engine.process(data_array, instrument, layer.gain)
-                self.layers_mixer.add(WaveGenerator(WaveArray(processed, 2)))
+                processed_data, raw_pitches, processed_pitches = self.engine.process(data_array, instrument, layer.gain)
+                self.raw_segments_widget.display.set_segments(raw_pitches)
+                self.processed_segments_widget.display.set_segments(processed_pitches)
+                self.layers_mixer.add(WaveGenerator(WaveArray(processed_data, 2)))
             self.mixer.add(self.layers_mixer)
 
         def play(instance):
@@ -1075,7 +1124,15 @@ class MainMainWidget1(ScreenManager):
 
         self.graph_widget = GraphDisplayWidget(
                 size_hint=(.5, .3), pos_hint={'x':.25, 'y':.2})
+        self.raw_segments_widget = SegmentsDisplayWidget(
+                size_hint=(.5, .3), pos_hint={'x':.25, 'y':.2},
+                color=(.9, .6, .4))
+        self.processed_segments_widget = SegmentsDisplayWidget(
+                size_hint=(.5, .3), pos_hint={'x':.25, 'y':.2},
+                color=(.1, .7, .3))
         screen.add_widget(self.graph_widget)
+        screen.add_widget(self.raw_segments_widget)
+        screen.add_widget(self.processed_segments_widget)
         self.add_widget(screen)
 
         self.update_record_screen()
