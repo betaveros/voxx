@@ -548,14 +548,27 @@ class ScreenWithBackground(Screen):
             rect.size = instance.size
         self.bind(size=update_rect)
 
-class IntInput(TextInput):
+class LineTextInput(TextInput):
 
     def __init__(self, **kwargs):
-        super(IntInput, self).__init__(multiline=False, **kwargs)
+        super(LineTextInput, self).__init__(
+                multiline=False,
+                font_size = 100,
+                color = dark_teal,
+                background_normal = '', background_color = light_pink,
+                foreground_color = dark_teal,
+                cursor_color = dark_teal,
+                **kwargs)
+
+class IntInput(LineTextInput):
+
+    def __init__(self, **kwargs):
+        super(IntInput, self).__init__(**kwargs)
 
     def insert_text(self, substring, from_undo=False):
         good = ''.join(c for c in substring if c.isdigit())
         return super(IntInput, self).insert_text(good, from_undo=from_undo)
+
 
 background = (0.694, 0.976, 0.988, 1)
 dark_teal = (0.164, 0.517, 0.552, 1)
@@ -766,33 +779,18 @@ class MainMainWidget1(ScreenManager):
                 font_size = 60,
                 size_hint=(.3, .05), pos_hint={'x':.51, 'y':.5},
                 color= dark_teal)
-        
+
         self.instrument_input1 = IntInput(
-                text = '120', #default bpm
-                font_size = 100,
-                color = dark_teal,
-                size_hint=(.2, .1), pos_hint={'x':.4, 'y':.5}, 
-                background_normal = '', background_color = light_pink,
-                foreground_color = dark_teal,
-                cursor_color = dark_teal)
+                text = '120',
+                size_hint=(.2, .1), pos_hint={'x':.4, 'y':.5})
 
-        self.instrument_input2 = IntInput(
-                text = 'C', 
-                font_size = 100,
-                color = dark_teal,
-                size_hint=(.2, .1), pos_hint={'x':.4, 'y':.38}, 
-                background_normal = '', background_color = light_pink,
-                foreground_color = dark_teal,
-                cursor_color = dark_teal)
+        self.instrument_input2 = LineTextInput(
+                text = 'C',
+                size_hint=(.2, .1), pos_hint={'x':.4, 'y':.38})
 
-        self.instrument_input3 = IntInput(
+        self.instrument_input3 = LineTextInput(
                 text = '1,4,5,1', 
-                font_size = 100,
-                color = dark_teal,
-                size_hint=(.5, .1), pos_hint={'x':.4, 'y':.26}, 
-                background_normal = '', background_color = light_pink,
-                foreground_color = dark_teal,
-                cursor_color = dark_teal)
+                size_hint=(.5, .1), pos_hint={'x':.4, 'y':.26})
 
 
         button_back = make_bg_button('Back', .1, .15, .01, .02)
@@ -888,12 +886,7 @@ class MainMainWidget1(ScreenManager):
 
         self.instrument_input = IntInput(
                 text = '40', # violin?? idk
-                font_size = 100,
-                color = dark_teal,
-                size_hint=(.18, .15), pos_hint={'x':.15, 'y':.5}, 
-                background_normal = '', background_color = light_pink,
-                foreground_color = dark_teal,
-                cursor_color = dark_teal)
+                size_hint=(.18, .15), pos_hint={'x':.15, 'y':.5})
 
         def add_instrument_button(num, name, sx, sy, px, py):
             def cb(instance):
