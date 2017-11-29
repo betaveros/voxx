@@ -1057,7 +1057,7 @@ class MainMainWidget1(ScreenManager):
         self.save_button.bind(on_press=save)
         self.record_button.bind(on_press=record)
 
-        button_instrument = make_button('Change Instrument', .18, .15, .8, .8, 30)
+        button_instrument = make_button('   Change\nInstrument', .18, .15, .8, .8, 50)
         button_instrument.bind(on_press=self.go_to_callback('instrument'))
 
         button_cancel = make_bg_button('Cancel',.1, .1, .85, .02)
