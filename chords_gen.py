@@ -71,6 +71,7 @@ def chord_generater(chords, key, rhythm):
 		mid_line.append(scale_notes[(chord + 1) % 7])
 		root_line.append(scale_notes[(chord -1) % 7])
 		names.append(numerals[(chord - 1) % 7])
+
 	print("top notes", top_line)
 	print("mid notes", mid_line)
 	print("rt notes", root_line)
