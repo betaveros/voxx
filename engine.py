@@ -65,14 +65,14 @@ class VoxxEngine(object):
         self.bpm = 120
         self.tick_unit = 80
 
-    def play_lines(self, synth, scheduler, callback):
+    def play_lines(self, synth, scheduler, gain_callback, text_callback):
 
         stopper = [False]
 
         def next_note_play(tick, (melody, i)):
             synth.noteoff(CHORD_CHANNEL, melody[(i - 1)%len(melody)][1])
             if stopper[0]: return
-            synth.noteon(CHORD_CHANNEL, melody[i][1], 100)
+            synth.noteon(CHORD_CHANNEL, melody[i][1], gain_callback())
             scheduler.post_at_tick(tick + melody[i][0], next_note_play, (melody, (i + 1) % (len(melody))))
 
         for line in self.lines:
@@ -81,7 +81,7 @@ class VoxxEngine(object):
         def next_text(tick, i):
             if stopper[0]: return
             dt = self.duration_texts[i]
-            callback(dt.text)
+            text_callback(dt.text)
             scheduler.post_at_tick(tick + dt.duration, next_text, (i + 1) % (len(self.duration_texts)))
 
         next_text(scheduler.get_tick(), 0)
@@ -96,7 +96,7 @@ class VoxxEngine(object):
         self.chords = c[-2]
         self.duration_texts = c[-1]
 
-    def process(self, buf, note_instrument, include_chords = False):
+    def process(self, buf, note_instrument, layer_gain, chords_gain = None):
 
         pitch = PitchDetector()
         synth = Synth('data/FluidR3_GM.sf2')
@@ -115,9 +115,9 @@ class VoxxEngine(object):
         line_progress = [(0, 0)] * len(self.lines)
         chord_idx = 0
         chord_tick = 0
-        if include_chords:
+        if chords_gain is not None:
             for line in self.lines:
-                synth.noteon(CHORD_CHANNEL, line[0][0], 100)
+                synth.noteon(CHORD_CHANNEL, line[0][0], chords_gain)
         last_pitch = 0
         while True:
             frame = int(round(Audio.sample_rate * 60.0 / self.bpm * tick / kTicksPerQuarter))
@@ -133,7 +133,7 @@ class VoxxEngine(object):
                 if last_pitch:
                     synth.noteoff(NOTE_CHANNEL, last_pitch)
                 if cur_pitch:
-                    synth.noteon(NOTE_CHANNEL, cur_pitch, 100)
+                    synth.noteon(NOTE_CHANNEL, cur_pitch, layer_gain)
             last_pitch = cur_pitch
 
             synth_data, continue_flag = synth.generate(end_frame - frame, 2)
@@ -147,13 +147,13 @@ class VoxxEngine(object):
                 cur_template = make_snap_template(self.chords[chord_idx].notes)
                 chord_tick = 0
 
-            if include_chords:
+            if chords_gain is not None:
                 for i, ((note_idx, note_tick), line) in enumerate(zip(line_progress, self.lines)):
                     note_tick += self.tick_unit
                     if note_tick >= line[note_idx][0]:
                         synth.noteoff(CHORD_CHANNEL, line[note_idx][1])
                         note_idx = (note_idx + 1) % len(line)
-                        synth.noteon(CHORD_CHANNEL, line[note_idx][1], 100)
+                        synth.noteon(CHORD_CHANNEL, line[note_idx][1], chords_gain)
                         note_tick = 0
                     line_progress[i] = (note_idx, note_tick)
 

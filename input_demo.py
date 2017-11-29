@@ -34,6 +34,7 @@ from kivy.graphics import Color, Ellipse, Rectangle, Line
 from kivy.graphics import PushMatrix, PopMatrix, Translate, Scale, Rotate
 from kivy.uix.button import Button
 from kivy.uix.textinput import TextInput
+from kivy.uix.slider import Slider
 from kivy.uix.screenmanager import ScreenManager, Screen
 
 import chords_gen
@@ -616,9 +617,10 @@ def make_bg_button(text, size_hint_x, size_hint_y, pos_hint_x, pos_hint_y, font_
     return make_button(text, size_hint_x, size_hint_y, pos_hint_x, pos_hint_y, font_size, color=black, bg_color=background)
 
 class Layer(object):
-    def __init__(self, instrument, data):
+    def __init__(self, instrument, data, gain):
         self.instrument = instrument
         self.data = data
+        self.gain = gain
 
 class MainMainWidget1(ScreenManager):
 
@@ -634,7 +636,7 @@ class MainMainWidget1(ScreenManager):
         self.recording = False
         self.input_buffers = []
         self.layers = []
-        self.cur_layer = Layer(40, None)
+        self.cur_layer = Layer(40, None, 100)
 
         self.channel_select = 0
 
@@ -975,6 +977,20 @@ class MainMainWidget1(ScreenManager):
         self.save_button = make_button('Save', .5, .1, .25, .5, 100)
         self.record_button = make_button('Record', .5, .1, .25, .4, 100)
 
+        self.background_gain_slider = Slider(
+                min=0, max=100, value=100, orientation='vertical',
+                size_hint=(.1, .5),
+                pos_hint={'x': .05, 'y': .2})
+        self.layer_gain_slider = Slider(
+                min=0, max=100, value=100, orientation='vertical',
+                size_hint=(.1, .5),
+                pos_hint={'x': .85, 'y': .2})
+        def get_background_gain():
+            return int(round(self.background_gain_slider.value))
+        def change_layer_gain(instance, value):
+            self.cur_layer.gain = int(round(value))
+        self.layer_gain_slider.bind(value=change_layer_gain)
+
         self.engine_playing_text = ""
         def engine_text_callback(text):
             self.engine_playing_text = text
@@ -998,7 +1014,7 @@ class MainMainWidget1(ScreenManager):
             for layer in layers:
                 data_array = WaveArray(layer.data, 2)
                 instrument = layer.instrument
-                processed = self.engine.process(data_array, instrument)
+                processed = self.engine.process(data_array, instrument, layer.gain)
                 self.layers_mixer.add(WaveGenerator(WaveArray(processed, 2)))
             self.mixer.add(self.layers_mixer)
 
@@ -1010,7 +1026,7 @@ class MainMainWidget1(ScreenManager):
             else:
                 prep_engine()
                 self.playing = True
-                self.engine_stop = self.engine.play_lines(self.synth, self.sched, engine_text_callback)
+                self.engine_stop = self.engine.play_lines(self.synth, self.sched, get_background_gain, engine_text_callback)
                 layers = self.layers
                 if self.cur_layer.data is not None: layers = layers + [self.cur_layer]
                 play_layers(layers)
@@ -1020,7 +1036,7 @@ class MainMainWidget1(ScreenManager):
         def save(instance):
             if self.cur_layer.data is not None:
                 self.layers.append(self.cur_layer)
-                self.cur_layer = Layer(self.instrument_input.int_value, None)
+                self.cur_layer = Layer(self.instrument_input.int_value, None, self.layer_gain_slider.value)
 
             self.update_record_screen()
 
@@ -1034,7 +1050,7 @@ class MainMainWidget1(ScreenManager):
                 prep_engine()
                 self.input_buffers = []
                 self.recording = True
-                self.engine_stop = self.engine.play_lines(self.synth, self.sched, engine_text_callback)
+                self.engine_stop = self.engine.play_lines(self.synth, self.sched, get_background_gain, engine_text_callback)
                 play_layers(self.layers)
 
             self.update_record_screen()
@@ -1055,6 +1071,8 @@ class MainMainWidget1(ScreenManager):
         screen.add_widget(self.record_button)
         screen.add_widget(button_cancel)
         screen.add_widget(button_instrument)
+        screen.add_widget(self.background_gain_slider)
+        screen.add_widget(self.layer_gain_slider)
 
 
         self.graph_widget = GraphDisplayWidget(
