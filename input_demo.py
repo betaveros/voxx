@@ -718,10 +718,10 @@ class MainMainWidget1(ScreenManager):
             button.bind(on_press=self.mood_callback(button, chords, key, rhythm))
             screen.add_widget(button)
 
-        add_mood_button('Happy', .15, .15, .08, .4, [1, 5, 6, 4], ['c', 'major'], 240)
-        add_mood_button('Sad'  , .15, .15, .31, .4, [1, 3, 6, 4, 2, 7], ['e', 'minor'], 960)
-        add_mood_button('Epic' , .15, .15, .54, .4, [4, 1, 6, 5], ['d', 'major'], 240)
-        add_mood_button('Chill', .15, .15, .77, .4, [1, 7, 6, 5], ['f', 'minor'], 480)
+        add_mood_button('Happy', .15, .15, .08, .4, [6, 4, 1, 5], ['c', 'major'], 240)
+        add_mood_button('Sad'  , .15, .15, .31, .4, [1, 7, 5, 4], ['c', 'minor'], 1920)
+        add_mood_button('Epic' , .15, .15, .54, .4, [4, 1, 6, 5], ['d', 'major'], 480)
+        add_mood_button('Chill', .15, .15, .77, .4, [1, 7, 6, 5], ['f', 'minor'], 960)
 
         button_back = make_bg_button('Back', .1, .15, .01, .02)
         button_next = make_bg_button('Next', .1, .15, .89, .02)
