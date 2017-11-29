@@ -608,9 +608,12 @@ class CoralButtonGroup(object):
         self.pressed.background_color = dark_teal
         self.pressed = None
 
-    def make_button(self, text, size_hint_x, size_hint_y, pos_hint_x, pos_hint_y):
-        button = make_button(text, size_hint_x, size_hint_y, pos_hint_x, pos_hint_y)
-        button.bind(on_press=self.press)
+    def make_button(self, text, size_hint_x, size_hint_y, pos_hint_x, pos_hint_y, font_size=50, callback=None):
+        button = make_button(text, size_hint_x, size_hint_y, pos_hint_x, pos_hint_y, font_size)
+        def cur_press(instance):
+            if callback is not None: callback(instance)
+            self.press(instance)
+        button.bind(on_press=cur_press)
         return button
 
 def make_bg_button(text, size_hint_x, size_hint_y, pos_hint_x, pos_hint_y, font_size=50):
@@ -686,18 +689,12 @@ class MainMainWidget1(ScreenManager):
                 size_hint=(.7, .3), pos_hint={'x':.15, 'y':.4},
                 color=dark_teal)
 
-        button1 = make_button('Set by Mood', .25, .15, .2, .25, 50)
-        button1.bind(on_press=self.go_to_callback('mood1'))
-
-        button2 = make_button('Set by Input', .25, .15, .55, .25, 50)
-        button2.bind(on_press=self.go_to_callback('input'))
+        g = CoralButtonGroup()
+        button1 = g.make_button('Set by Mood',  .25, .15, .2 , .25, 50, self.go_to_callback('mood1'))
+        button2 = g.make_button('Set by Input', .25, .15, .55, .25, 50, self.go_to_callback('input'))
 
         button3 = make_bg_button('Skip Background Track', .25, .15, .7, .04, 40)
         button3.bind(on_press=self.go_to_callback('record'))
-
-        button1.bind(on_press=self.input_md_callback(button1))
-        button2.bind(on_press=self.input_md_callback(button2))
-
 
         screen.add_widget(label1)
         screen.add_widget(label2)
@@ -715,9 +712,10 @@ class MainMainWidget1(ScreenManager):
                 size_hint=(.5, .3), pos_hint={'x':.25, 'y':.6},
                 color=(0, 0.5, 0.6, 1))
 
+        mood_group = CoralButtonGroup()
         def add_mood_button(name, sx, sy, px, py, chords, key, rhythm):
-            button = make_button(name, sx, sy, px, py)
-            button.bind(on_press=self.mood_callback(button, chords, key, rhythm))
+            button = mood_group.make_button(name, sx, sy, px, py,
+                    callback=self.mood_callback(chords, key, rhythm))
             screen.add_widget(button)
 
         add_mood_button('Happy', .15, .15, .08, .4, [6, 4, 1, 5], ['c', 'major'], 240)
@@ -1087,33 +1085,8 @@ class MainMainWidget1(ScreenManager):
             self.current = name
         return callback
 
-    def set_color_callback(self, button):
-        def callback(instance):
-            button.background_color = coral
-        return callback
-    def input_md_callback(self,button):
-        def callback(instance):
-            if self.input_mode == None:
-                button.background_color = coral
-                self.input_mode = button
-
-            if button != self.input_mode:
-                self.input_mode.background_color = dark_teal
-                button.background_color = coral
-                self.input_mode = button
-        return callback
-
-    def mood_callback(self, button, chords, key, rhythm):
-        def callback(instance):
-            if self.mood == None:
-                button.background_color = coral
-                self.mood = button
-
-            if button != self.mood:
-                self.mood.background_color = dark_teal
-                button.background_color = coral
-                self.mood = button
-
+    def mood_callback(self, chords, key, rhythm):
+        def callback(button):
             self.chords_input.text = ','.join(str(c) for c in chords)
             key_bass, key_mode = key
             self.key_input.text = key_bass
