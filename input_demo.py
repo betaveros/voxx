@@ -569,6 +569,13 @@ class IntInput(LineTextInput):
         good = ''.join(c for c in substring if c.isdigit())
         return super(IntInput, self).insert_text(good, from_undo=from_undo)
 
+    @property
+    def int_value(self):
+        try:
+            return int(self.text)
+        except ValueError:
+            print("error converting to int:", repr(self.text))
+            return 0
 
 background = (0.694, 0.976, 0.988, 1)
 dark_teal = (0.164, 0.517, 0.552, 1)
@@ -581,6 +588,29 @@ bright_blue = (0.160, 0.850, 1,1)
 
 def make_button(text, size_hint_x, size_hint_y, pos_hint_x, pos_hint_y, font_size=50, color=light_pink, bg_color=dark_teal):
     return Button(text=text, font_size=font_size, color=color, size_hint=(size_hint_x, size_hint_y), pos_hint={'x': pos_hint_x, 'y': pos_hint_y}, background_normal='', background_color=bg_color)
+
+class CoralButtonGroup(object):
+    def __init__(self):
+        super(CoralButtonGroup, self).__init__()
+        self.pressed = None
+
+    def press(self, button):
+        if self.pressed is None:
+            button.background_color = coral
+            self.pressed = button
+        if button != self.pressed:
+            self.pressed.background_color = dark_teal
+            button.background_color = coral
+            self.pressed = button
+
+    def clear_pressed(self):
+        self.pressed.background_color = dark_teal
+        self.pressed = None
+
+    def make_button(self, text, size_hint_x, size_hint_y, pos_hint_x, pos_hint_y):
+        button = make_button(text, size_hint_x, size_hint_y, pos_hint_x, pos_hint_y)
+        button.bind(on_press=self.press)
+        return button
 
 def make_bg_button(text, size_hint_x, size_hint_y, pos_hint_x, pos_hint_y, font_size=50):
     return make_button(text, size_hint_x, size_hint_y, pos_hint_x, pos_hint_y, font_size, color=black, bg_color=background)
@@ -599,7 +629,6 @@ class MainMainWidget1(ScreenManager):
 
         self.input_mode = None
         self.mood = None
-        self.measure_length = None
 
         self.playing = False
         self.recording = False
@@ -717,34 +746,30 @@ class MainMainWidget1(ScreenManager):
                 size_hint=(.5, .3), pos_hint={'x':.25, 'y':.5},
                 color=dark_teal)
 
-        button_short = make_button('Short\n (4 measures)', .2, .15, .1, .3)
-
-        button_mid = make_button('Medium\n(6 measures)', .2, .15, .4, .3)
-
-        button_long = make_button('Long\n (8 measures)', .2, .15, .7, .3)
+        self.measure_group = CoralButtonGroup()
+        self.button_short = self.measure_group.make_button('Short\n (4 measures)',  .2, .15, .1, .3)
+        self.button_mid   = self.measure_group.make_button('Medium\n (6 measures)', .2, .15, .4, .3)
+        self.button_long  = self.measure_group.make_button('Long\n (8 measures)',   .2, .15, .7, .3)
 
         button_back = make_bg_button('Back', .1, .15, .01, .02)
 
         button_next = make_bg_button('Next', .1, .15, .89, .02)
 
-        button_short.bind(on_press=self.measure_callback(button_short))
-        button_mid.bind(on_press=self.measure_callback(button_mid))
-        button_long.bind(on_press=self.measure_callback(button_long))
         button_next.bind(on_press=self.go_to_callback('instrument'))
         button_back.bind(on_press=self.go_to_callback('mood1'))
 
 
         screen.add_widget(label1)
         screen.add_widget(label2)
-        screen.add_widget(button_short)
-        screen.add_widget(button_mid)
-        screen.add_widget(button_long)
+        screen.add_widget(self.button_short)
+        screen.add_widget(self.button_mid)
+        screen.add_widget(self.button_long)
         screen.add_widget(button_back)
         screen.add_widget(button_next)
         self.add_widget(screen)
 
     def finish_set_instrument(self, instance):
-        self.cur_layer.instrument = int(self.instrument_input.text)
+        self.cur_layer.instrument = self.instrument_input.int_value
         self.current = 'record'
 
     def make_input_screen(self):
@@ -780,15 +805,15 @@ class MainMainWidget1(ScreenManager):
                 size_hint=(.3, .05), pos_hint={'x':.51, 'y':.5},
                 color= dark_teal)
 
-        self.instrument_input1 = IntInput(
+        self.bpm_input = IntInput(
                 text = '120',
                 size_hint=(.2, .1), pos_hint={'x':.4, 'y':.5})
 
-        self.instrument_input2 = LineTextInput(
+        self.key_input = LineTextInput(
                 text = 'C',
                 size_hint=(.2, .1), pos_hint={'x':.4, 'y':.38})
 
-        self.instrument_input3 = LineTextInput(
+        self.chords_input = LineTextInput(
                 text = '1,4,5,1', 
                 size_hint=(.5, .1), pos_hint={'x':.4, 'y':.26})
 
@@ -799,13 +824,12 @@ class MainMainWidget1(ScreenManager):
         button_next.bind(on_press=self.go_to_callback('rhythm'))
         button_back.bind(on_press=self.go_to_callback('start'))
 
+        self.mode_group = CoralButtonGroup()
+        self.button_major = self.mode_group.make_button('Major', .13, .1, .62, .38)
+        self.button_minor = self.mode_group.make_button('Minor', .13, .1, .78, .38)
 
-        button_major = make_button('Major', .13, .1, .62, .38)
-        button_minor = make_button('Minor', .13, .1, .78, .38)
-
-        button_major.bind(on_press=self.measure_callback(button_major))
-        button_minor.bind(on_press=self.measure_callback(button_minor))
-
+        # button_major.bind(on_press=self.measure_callback(self.button_major))
+        # button_minor.bind(on_press=self.measure_callback(button_minor))
 
         screen.add_widget(label1)
         screen.add_widget(label2)
@@ -813,11 +837,11 @@ class MainMainWidget1(ScreenManager):
         screen.add_widget(label4)
         screen.add_widget(label5)
         screen.add_widget(label6)
-        screen.add_widget(self.instrument_input1)
-        screen.add_widget(self.instrument_input2)
-        screen.add_widget(self.instrument_input3)
-        screen.add_widget(button_major) 
-        screen.add_widget(button_minor)       
+        screen.add_widget(self.bpm_input)
+        screen.add_widget(self.key_input)
+        screen.add_widget(self.chords_input)
+        screen.add_widget(self.button_major)
+        screen.add_widget(self.button_minor)
         screen.add_widget(button_back)
         screen.add_widget(button_next)
 
@@ -835,11 +859,11 @@ class MainMainWidget1(ScreenManager):
                 size_hint=(.6, .2), pos_hint={'x':.2, 'y':.56},
                 color=dark_teal)
 
-        button_slow = make_button('Slow\n (1/4 note)', .2, .15, .1, .4)
 
-        button_mid = make_button('Medium\n(1/8 note)', .2, .15, .4, .4)
-
-        button_fast = make_button('Fast\n (1/16 note)', .2, .15, .7, .4)
+        self.speed_group = CoralButtonGroup()
+        button_slow = self.speed_group.make_button('Slow\n (1/4 note)',   .2, .15, .1, .4)
+        button_mid  = self.speed_group.make_button('Medium\n (1/8 note)', .2, .15, .4, .4)
+        button_fast = self.speed_group.make_button('Fast\n (1/16 note)',  .2, .15, .7, .4)
 
         button_preview = make_button('Preview', .2, .15, 0.41, 0.03)
 
@@ -847,10 +871,6 @@ class MainMainWidget1(ScreenManager):
 
         button_next = make_bg_button('Next', .1, .15, .89, .02)
 
-        button_slow.bind(on_press=self.measure_callback(button_slow))
-        button_mid.bind(on_press=self.measure_callback(button_mid))
-        button_fast.bind(on_press=self.measure_callback(button_fast))
-        button_fast.bind(on_press=self.measure_callback(button_preview))
         button_next.bind(on_press=self.go_to_callback('instrument'))
         button_back.bind(on_press=self.go_to_callback('input'))
 
@@ -988,7 +1008,7 @@ class MainMainWidget1(ScreenManager):
         def save(instance):
             if self.cur_layer.data is not None:
                 self.layers.append(self.cur_layer)
-                self.cur_layer = Layer(int(self.instrument_input.text), None)
+                self.cur_layer = Layer(self.instrument_input.int_value, None)
 
             self.update_record_screen()
 
@@ -1063,22 +1083,11 @@ class MainMainWidget1(ScreenManager):
                 button.background_color = coral
                 self.mood = button
 
+            self.chords_input.text = ','.join(str(c) for c in chords)
+            key_bass, key_mode = key
+            self.key_input.text = key_bass
             self.engine.set_chords(chords, key)
         return callback
-
-    def measure_callback(self, button):
-        def callback(instance):
-            if self.measure_length == None:
-                button.background_color = coral
-                self.measure_length = button
-
-            if button != self.measure_length:
-                self.measure_length.background_color = dark_teal
-                button.background_color = coral
-                self.measure_length = button
-        return callback
-
-
 
     def receive_audio(self, frames, num_channels) :
         # get one channel from input
