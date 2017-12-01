@@ -700,6 +700,7 @@ class MainMainWidget1(ScreenManager):
         self.make_rhythm_screen()
 
         self.make_record_screen()
+        self.make_tracks_screen()
 
         self.make_instrument_screen()
         main_screen = ScreenWithBackground('main')
@@ -1016,17 +1017,33 @@ class MainMainWidget1(ScreenManager):
             text += u' ({})'.format(self.engine_playing_text) if self.engine_playing_text else ''
         self.record_label.text = text
 
+    
+    def make_tracks_screen(self):
+        screen = ScreenWithBackground('tracks')
+
+        label1 = Label(text='All Saved Tracks',
+                font_size = 100,
+                size_hint=(.5, .3), pos_hint={'x':.25, 'y':.7},
+                color=dark_teal)
+        button_back = make_bg_button('Back', .1, .15, .01, .02)
+        button_back.bind(on_press=self.go_to_callback('record'))
+
+        screen.add_widget(label1)
+        screen.add_widget(button_back)
+        self.add_widget(screen)
+
+
     def make_record_screen(self):
         screen = ScreenWithBackground('record')
 
         self.record_label = Label(text='...',
-                font_size = 100,
-                size_hint=(.5, .3), pos_hint={'x':.25, 'y':.6},
+                font_size = 50,
+                size_hint=(.5, .1), pos_hint={'x':.25, 'y':.75},
 
                 color=(0, 0.5, 0.6, 1))
         self.play_button = make_button('Play', .2, .1, .25, .85, 80)
         self.record_button = make_button('Record', .2, .1, .55, .85, 80)
-        self.save_button = make_button('Save', .5, .1, .25, .5, 100)
+        self.save_button = make_button('Save', .2, .1, .6, .1, 100)
 
         self.background_gain_slider = Slider(
                 min=0, max=100, value=100, orientation='vertical',
@@ -1142,8 +1159,11 @@ class MainMainWidget1(ScreenManager):
         self.save_button.bind(on_press=save)
         self.record_button.bind(on_press=record)
 
-        button_instrument = make_button('   Change\nInstrument', .18, .15, .8, .8, 50)
+        button_instrument = make_button('   Change\nInstrument', .18, .15, .5, .3, 50)
         button_instrument.bind(on_press=self.go_to_callback('instrument'))
+
+        button_all_tracks = make_button('All Tracks', .18, .15, .7, .3, 50)
+        button_all_tracks.bind(on_press=self.go_to_callback('tracks'))
 
         button_cancel = make_bg_button('Cancel',.1, .1, .85, .02)
         button_cancel.bind(on_press=self.go_to_callback('start'))
@@ -1153,6 +1173,7 @@ class MainMainWidget1(ScreenManager):
         screen.add_widget(self.save_button)
         screen.add_widget(self.record_button)
         screen.add_widget(button_cancel)
+        screen.add_widget(button_all_tracks)
         screen.add_widget(button_instrument)
         screen.add_widget(self.background_gain_slider)
         screen.add_widget(self.layer_gain_slider)
@@ -1164,19 +1185,20 @@ class MainMainWidget1(ScreenManager):
         screen.add_widget(label_rhythm_snap)       
 
         self.graph_widget = GraphDisplayWidget(
-                size_hint=(.5, .3), pos_hint={'x':.25, 'y':.2})
+                size_hint=(.5, .3), pos_hint={'x':.12, 'y':.5})
         self.raw_segments_widget = SegmentsDisplayWidget(
-                size_hint=(.5, .3), pos_hint={'x':.25, 'y':.2},
-                color=(.9, .6, .4))
+                size_hint=(.5, .3), pos_hint={'x':.12, 'y':.5},
+                color= coral)
         self.processed_segments_widget = SegmentsDisplayWidget(
-                size_hint=(.5, .3), pos_hint={'x':.25, 'y':.2},
-                color=(.1, .7, .3))
+                size_hint=(.5, .3), pos_hint={'x':.12, 'y':.5},
+                color= coral) #it's still just red rn?
         screen.add_widget(self.graph_widget)
         screen.add_widget(self.raw_segments_widget)
         screen.add_widget(self.processed_segments_widget)
         self.add_widget(screen)
 
         self.update_record_screen()
+
 
     def go_to_callback(self, name):
         def callback(instance):
