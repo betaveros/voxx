@@ -690,8 +690,8 @@ class MainMainWidget1(ScreenManager):
                 color=dark_teal)
 
         g = CoralButtonGroup()
-        button1 = g.make_button('Set by Mood',  .25, .15, .2 , .25, 50, self.go_to_callback('mood1'))
-        button2 = g.make_button('Set by Input', .25, .15, .55, .25, 50, self.go_to_callback('input'))
+        button1 = g.make_button('Templates',  .25, .15, .2 , .25, 50, self.go_to_callback('mood1'))
+        button2 = g.make_button('Advanced', .25, .15, .55, .25, 50, self.go_to_callback('input'))
 
         button3 = make_bg_button('Skip Background Track', .25, .15, .7, .04, 40)
         button3.bind(on_press=self.go_to_callback('record'))
@@ -725,13 +725,16 @@ class MainMainWidget1(ScreenManager):
 
         button_back = make_bg_button('Back', .1, .15, .01, .02)
         button_next = make_bg_button('Next', .1, .15, .89, .02)
+        button_advanced = make_bg_button('Advanced', .2, .15, .4, .02)
 
         button_next.bind(on_press=self.go_to_callback('length'))
         button_back.bind(on_press=self.go_to_callback('start'))
+        button_advanced.bind(on_press=self.go_to_callback('input'))
 
         screen.add_widget(label)
         screen.add_widget(button_back)
         screen.add_widget(button_next)
+        screen.add_widget(button_advanced)
         self.add_widget(screen)
 
     def make_progression_screen(self):
@@ -752,11 +755,13 @@ class MainMainWidget1(ScreenManager):
         self.button_long  = self.measure_group.make_button('Long\n (8 measures)',   .2, .15, .7, .3)
 
         button_back = make_bg_button('Back', .1, .15, .01, .02)
-
         button_next = make_bg_button('Next', .1, .15, .89, .02)
+        button_advanced = make_bg_button('Advanced', .2, .15, .4, .02)
+
 
         button_next.bind(on_press=self.go_to_callback('instrument'))
         button_back.bind(on_press=self.go_to_callback('mood1'))
+        button_advanced.bind(on_press=self.go_to_callback('input'))
 
 
         screen.add_widget(label1)
@@ -766,6 +771,7 @@ class MainMainWidget1(ScreenManager):
         screen.add_widget(self.button_long)
         screen.add_widget(button_back)
         screen.add_widget(button_next)
+        screen.add_widget(button_advanced)
         self.add_widget(screen)
 
     def finish_set_instrument(self, instance):
@@ -774,7 +780,7 @@ class MainMainWidget1(ScreenManager):
 
     def make_input_screen(self):
         screen = ScreenWithBackground('input')
-        label1 = Label(text='A few things first',
+        label1 = Label(text='Advanced Settings',
                 font_size = 150,
                 size_hint=(.5, .3), pos_hint={'x':.25, 'y':.7},
                 color= dark_teal)
@@ -971,23 +977,53 @@ class MainMainWidget1(ScreenManager):
                 size_hint=(.5, .3), pos_hint={'x':.25, 'y':.6},
 
                 color=(0, 0.5, 0.6, 1))
-        self.play_button = make_button('Play', .5, .1, .25, .6, 100)
+        self.play_button = make_button('Play', .2, .1, .25, .85, 80)
+        self.record_button = make_button('Record', .2, .1, .55, .85, 80)
         self.save_button = make_button('Save', .5, .1, .25, .5, 100)
-        self.record_button = make_button('Record', .5, .1, .25, .4, 100)
 
         self.background_gain_slider = Slider(
                 min=0, max=100, value=100, orientation='vertical',
-                size_hint=(.1, .5),
-                pos_hint={'x': .05, 'y': .2})
+                size_hint=(.1, .3),
+                pos_hint={'x': .1, 'y': .15})
         self.layer_gain_slider = Slider(
                 min=0, max=100, value=100, orientation='vertical',
-                size_hint=(.1, .5),
-                pos_hint={'x': .85, 'y': .2})
+                size_hint=(.1, .3),
+                pos_hint={'x': .2, 'y': .15})
         def get_background_gain():
             return int(round(self.background_gain_slider.value))
         def change_layer_gain(instance, value):
             self.cur_layer.gain = int(round(value))
         self.layer_gain_slider.bind(value=change_layer_gain)
+
+        self.pitch_snap_slider = Slider(
+                min=0, max=100, value=0, orientation='vertical',
+                size_hint=(.1, .3),
+                pos_hint={'x': .3, 'y': .15})
+        self.rhythm_snap_slider = Slider(
+                min=0, max=100, value=0, orientation='vertical',
+                size_hint=(.1, .3),
+                pos_hint={'x': .4, 'y': .15})
+        
+        label_background_gain = Label(text='background\nvolume',
+                font_size = 30,
+                size_hint=(.1, .05), pos_hint={'x':.1, 'y':.05},
+                color=dark_teal)
+
+        label_layer_gain = Label(text='solo\nvolume',
+                font_size = 30,
+                size_hint=(.1, .05), pos_hint={'x':.2, 'y':.05},
+                color=dark_teal)
+
+        label_pitch_snap = Label(text='pitch\nsnap',
+                font_size = 30,
+                size_hint=(.1, .05), pos_hint={'x':.3, 'y':.05},
+                color=dark_teal)
+
+        label_rhythm_snap = Label(text='rhythm\nsnap',
+                font_size = 30,
+                size_hint=(.1, .05), pos_hint={'x':.4, 'y':.05},
+                color=dark_teal)
+
 
         self.engine_playing_text = ""
         def engine_text_callback(text):
@@ -1071,7 +1107,12 @@ class MainMainWidget1(ScreenManager):
         screen.add_widget(button_instrument)
         screen.add_widget(self.background_gain_slider)
         screen.add_widget(self.layer_gain_slider)
-
+        screen.add_widget(self.pitch_snap_slider)
+        screen.add_widget(self.rhythm_snap_slider)
+        screen.add_widget(label_background_gain)
+        screen.add_widget(label_layer_gain)
+        screen.add_widget(label_pitch_snap)
+        screen.add_widget(label_rhythm_snap)       
 
         self.graph_widget = GraphDisplayWidget(
                 size_hint=(.5, .3), pos_hint={'x':.25, 'y':.2})
