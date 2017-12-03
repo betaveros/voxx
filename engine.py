@@ -10,7 +10,7 @@ from common.synth import *
 from collections import Counter
 
 import demo_chords
-import chords_gen
+from chords_gen import ChordTemplate
 
 import random
 from pitch_detector import PitchDetector
@@ -61,11 +61,11 @@ def majority_pitch(pitch_segments, template):
 class VoxxEngine(object):
     def __init__(self):
         if False:
-            self.chords = demo_chords.which
-            self.lines = [demo_chords.baseline, demo_chords.guitar2, demo_chords.guitar3]
-            self.duration_texts = demo_chords.texts
+            self.chords = demo_chords.which # type: List[Chord]
+            self.lines = [demo_chords.baseline, demo_chords.guitar2, demo_chords.guitar3] # type: List[List[Tuple[int, int]]]
+            self.duration_texts = demo_chords.texts # type: List[DurationText]
         else:
-            self.set_chords()
+            self.set_chord_template(ChordTemplate([1, 3, 6, 4, 2, 7], ('e', 'minor'), 240))
         # self.note_instrument = 40 # violin
         self.chord_instrument = 24 # flute?
         self.bpm = 120
@@ -96,11 +96,11 @@ class VoxxEngine(object):
             stopper[0] = True
         return stop_callback
 
-    def set_chords(self, chords=[1, 3, 6, 4, 2, 7], key=['e', 'minor'], rhythm=240):
-        c = chords_gen.chord_generater(chords, key, rhythm)
-        self.lines = c[:-2]
-        self.chords = c[-2]
-        self.duration_texts = c[-1]
+    def set_chord_template(self, ct):
+        # type: (ChordTemplate) -> None
+        self.lines = ct.lines
+        self.chords = ct.chords
+        self.duration_texts = ct.duration_texts
 
     def process(self, buf, note_instrument, layer_gain, chords_gain = None):
 
