@@ -144,6 +144,8 @@ class VoxxEngine(object):
             mono_slice = unknown_slice[::buf.get_num_channels()]
             segments = pitch_segments(pitch, mono_slice)
             cur_pitch = majority_pitch(segments, cur_template, aggro)
+            if last_pitch and cur_pitch:
+                cur_pitch = push_near(last_pitch, cur_pitch, 10)
             print(cur_pitch)
 
             raw_pitch_segments.extend(segments)
