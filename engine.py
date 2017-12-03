@@ -10,10 +10,12 @@ from common.synth import *
 from collections import Counter
 
 import demo_chords
-from chords_gen import ChordTemplate
+from chords_gen import Chord, ChordTemplate
 
 import random
 from pitch_detector import PitchDetector
+MYPY = False
+if MYPY: from typing import List, Tuple
 
 NUM_CHANNELS = 2
 
@@ -25,14 +27,18 @@ CHORD_CHANNEL = 1
 # snap = (0, 4, 7, 12)
 
 def make_snap_template(chord):
-    template = list(sorted(c % 12 for c in chord))
-    return [template[-1] - 12] + template + [template[0] + 12]
+    # type: (Chord) -> List[Tuple[int, int]]
+    template = list(sorted((p % 12, w) for p, w in chord.pitches.iteritems()))
+    lp, lw = template[-1]
+    rp, rw = template[0]
+    return [(lp - 12, lw)] + template + [(rp + 12, rw)]
 
-def snap_to_template(pitch, template):
+def snap_to_template(pitch, template, aggro):
     # template = (0, 2, 4, 5, 7, 9, 11, 12)
     if pitch == 0: return 0
     octave = 12 * (pitch // 12)
-    return int(octave + min(template, key=lambda x: abs(x - (pitch - octave))))
+    print(template, pitch, template, aggro)
+    return int(octave + min(template, key=lambda (p, w): abs(p - (pitch - octave)) / w ** aggro)[0])
 
 def push_near(anchor, pitch, max_jump):
     if pitch == 0: return 0
@@ -51,10 +57,10 @@ def pitch_segments(pitch_detector, mono_frame_array):
         ret.append((pitch, cur_slice.size))
     return ret
 
-def majority_pitch(pitch_segments, template):
+def majority_pitch(pitch_segments, template, aggro):
     note_votes = Counter()
     for pitch, weight in pitch_segments:
-        cur_note = snap_to_template(pitch, template)
+        cur_note = snap_to_template(pitch, template, aggro)
         note_votes[cur_note] += weight
     return max(note_votes.items(), key=lambda x: x[1])[0]
 
@@ -102,7 +108,7 @@ class VoxxEngine(object):
         self.chords = ct.chords
         self.duration_texts = ct.duration_texts
 
-    def process(self, buf, note_instrument, layer_gain, chords_gain = None):
+    def process(self, buf, note_instrument, layer_gain, aggro, chords_gain = None):
 
         pitch = PitchDetector()
         synth = Synth('data/FluidR3_GM.sf2')
@@ -117,7 +123,7 @@ class VoxxEngine(object):
         # writer.start()
         ret_data_list = []
 
-        cur_template = make_snap_template(self.chords[0].notes)
+        cur_template = make_snap_template(self.chords[0])
         line_progress = [(0, 0)] * len(self.lines)
         chord_idx = 0
         chord_tick = 0
@@ -137,7 +143,7 @@ class VoxxEngine(object):
             if not unknown_slice.size: break
             mono_slice = unknown_slice[::buf.get_num_channels()]
             segments = pitch_segments(pitch, mono_slice)
-            cur_pitch = majority_pitch(segments, cur_template)
+            cur_pitch = majority_pitch(segments, cur_template, aggro)
             print(cur_pitch)
 
             raw_pitch_segments.extend(segments)
@@ -158,7 +164,7 @@ class VoxxEngine(object):
             chord_tick += self.tick_unit
             if chord_tick >= self.chords[chord_idx].duration:
                 chord_idx = (chord_idx + 1) % len(self.chords)
-                cur_template = make_snap_template(self.chords[chord_idx].notes)
+                cur_template = make_snap_template(self.chords[chord_idx])
                 chord_tick = 0
 
             if chords_gain is not None:

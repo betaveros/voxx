@@ -382,7 +382,7 @@ class MainWidget1(BaseWidget) :
         self.cur_pitch = 0
         # self.chord_seq = chords_gen.chord_generater([1, 3, 6, 4, 2, 7], ['e', 'minor'], 240)[3]
         self.chord_seq = demo_chords.which
-        self.next_template = make_snap_template(self.chord_seq[0].notes)
+        self.next_template = make_snap_template(self.chord_seq[0])
 
         self.recording_idx = 0
 
@@ -488,7 +488,7 @@ class MainWidget1(BaseWidget) :
             pitch += self.get_pitch_offset()
             pitch = push_near(self.last_note, pitch, self.max_jump)
             if random.random() < self.get_snap_chance():
-                cur_note = snap_to_template(pitch, self.next_template)
+                cur_note = snap_to_template(pitch, self.next_template, 1)
             else:
                 cur_note = int(round(pitch))
         else:
@@ -667,10 +667,11 @@ def make_bg_button(text, size_hint_x, size_hint_y, pos_hint_x, pos_hint_y, font_
     return make_button(text, size_hint_x, size_hint_y, pos_hint_x, pos_hint_y, font_size, color=black, bg_color=background)
 
 class Layer(object):
-    def __init__(self, instrument, data, gain):
+    def __init__(self, instrument, data, gain, pitch_snap):
         self.instrument = instrument
         self.data = data
         self.gain = gain
+        self.pitch_snap = pitch_snap
 
 class MainMainWidget1(ScreenManager):
 
@@ -686,7 +687,7 @@ class MainMainWidget1(ScreenManager):
         self.recording = False
         self.input_buffers = []
         self.layers = []
-        self.cur_layer = Layer(40, None, 100)
+        self.cur_layer = Layer(40, None, 100, 20)
 
         self.channel_select = 0
 
@@ -1075,9 +1076,12 @@ class MainMainWidget1(ScreenManager):
         self.layer_gain_slider.bind(value=change_layer_gain)
 
         self.pitch_snap_slider = Slider(
-                min=0, max=100, value=0, orientation='vertical',
+                min=0, max=20, value=20, orientation='vertical',
                 size_hint=(.1, .3),
                 pos_hint={'x': .3, 'y': .15})
+        def change_layer_pitch_snap(instance, value):
+            self.cur_layer.pitch_snap = value
+        self.pitch_snap_slider.bind(value=change_layer_pitch_snap)
         self.rhythm_snap_slider = Slider(
                 min=0, max=100, value=0, orientation='vertical',
                 size_hint=(.1, .3),
@@ -1117,7 +1121,9 @@ class MainMainWidget1(ScreenManager):
             for layer in layers:
                 data_array = WaveArray(layer.data, 2)
                 instrument = layer.instrument
-                processed_data, raw_pitches, processed_pitches = self.engine.process(data_array, instrument, layer.gain)
+                processed_data, raw_pitches, processed_pitches = self.engine.process(
+                        data_array, instrument, layer.gain, layer.pitch_snap)
+
                 self.raw_segments_widget.display.set_segments(raw_pitches)
                 self.processed_segments_widget.display.set_segments(processed_pitches)
                 self.layers_mixer.add(WaveGenerator(WaveArray(processed_data, 2)))
@@ -1140,7 +1146,9 @@ class MainMainWidget1(ScreenManager):
         def save(instance):
             if self.cur_layer.data is not None:
                 self.layers.append(self.cur_layer)
-                self.cur_layer = Layer(self.instrument_input.int_value, None, self.layer_gain_slider.value)
+                self.cur_layer = Layer(self.instrument_input.int_value, None,
+                        self.layer_gain_slider.value,
+                        self.layer_pitch_snap_slider.value)
 
             self.update_record_screen()
 

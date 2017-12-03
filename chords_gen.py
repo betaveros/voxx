@@ -36,9 +36,11 @@ RHYTHM = {1920: WHOLE, 960: HALF, 480: QUA, 240: EIGHTH}
 
 
 class Chord(object):
-	def __init__(self, duration, notes):
-		self.duration = duration
-		self.notes = notes
+	def __init__(self, duration, pitches):
+		self.duration = duration # type: int
+		self.pitches = pitches # type: Dict[int, int]
+		# maps pitches in the chord or scale to a weight saying how "in the
+		# chord" it is
 
 class DurationText(object):
 	def __init__(self, duration, text):
@@ -99,7 +101,11 @@ def chord_generater(chord_degs, key, rhythm):
 			top_dur_pitch.append((note, top_line[x]))
 			middle_dur_pitch.append((note, mid_line[x]))
 			root_dur_pitch.append((note, root_line[x]))
-			chords.append(Chord(note, (top_line[x], mid_line[x], root_line[x])))
+			pitch_dict = dict((note, 1) for note in scale_notes)
+			pitch_dict[top_line[x]] = 2
+			pitch_dict[mid_line[x]] = 2
+			pitch_dict[root_line[x]] = 2
+			chords.append(Chord(note, pitch_dict))
 			duration_texts.append(DurationText(note, names[x]))
 
 	return ChordTemplate([top_dur_pitch, middle_dur_pitch, root_dur_pitch], chords, duration_texts)
