@@ -867,12 +867,12 @@ class MainMainWidget1(ScreenManager):
         self.key_input = LineTextInput(
                 text = 'C',
                 size_hint=(.2, .1), pos_hint={'x':.4, 'y':.38})
-        self.key_input.bind(text=lambda instance, value: update_chord_template())
+        self.key_input.bind(text=lambda instance, value: self.update_chord_template())
 
         self.chords_input = LineTextInput(
                 text = '1,4,5,1', 
                 size_hint=(.5, .1), pos_hint={'x':.4, 'y':.26})
-        self.chords_input.bind(text=lambda instance, value: update_chord_template())
+        self.chords_input.bind(text=lambda instance, value: self.update_chord_template())
 
         self.rhythm = 240 # TODO
 
