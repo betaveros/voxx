@@ -36,6 +36,7 @@ from kivy.uix.button import Button
 from kivy.uix.textinput import TextInput
 from kivy.uix.slider import Slider
 from kivy.uix.screenmanager import ScreenManager, Screen
+from kivy.uix.gridlayout import GridLayout
 
 import chords_gen
 import demo_chords
@@ -627,6 +628,7 @@ class IntInput(LineTextInput):
 
 background = (0.694, 0.976, 0.988, 1)
 dark_teal = (0.164, 0.517, 0.552, 1)
+light_teal = (0.164, 0.517, 0.552, 0.5)
 darker_teal = (0.035, 0.345, 0.364,1)
 coral = (0.980, 0.521, 0.4, 1)
 light_pink = (0.992, 0.925, 0.960,1)
@@ -1026,10 +1028,53 @@ class MainMainWidget1(ScreenManager):
 
         label1 = Label(text='All Saved Tracks',
                 font_size = 100,
-                size_hint=(.5, .3), pos_hint={'x':.25, 'y':.7},
+                size_hint=(.5, .3), pos_hint={'x':.25, 'y':.75},
+                font_name = 'fonts/AmaticSC-Regular.ttf',
                 color=dark_teal)
-        button_back = make_bg_button('Back', .1, .15, .01, .02)
+        N=8
+        self.y_pos = []
+        self.tracks =[]
+        self.select_buttons=[]
+        self.track_labels =[]
+
+
+        for i in range(N):
+            self.y_pos.append(0.7-0.08*i)
+            self.track = make_button('',0.7,0.05,0.2,self.y_pos[i])
+            self.tracks.append(self.track)
+
+            self.select_button = make_button ('select',0.05,0.05,0.13,self.y_pos[i],20, bg_color = light_teal)
+            self.select_buttons.append(self.select_button)
+
+            self.label = Label(text='Track  '+ str(i+1),
+                font_size = 40,
+                size_hint=(.08, .05), pos_hint={'x':.02, 'y':self.y_pos[i]},
+                font_name = 'fonts/AmaticSC-Regular.ttf',
+                color=dark_teal)
+            self.track_labels.append(self.label)
+
+            screen.add_widget(self.tracks[i])
+            screen.add_widget(self.select_buttons[i])
+            screen.add_widget(self.track_labels[i])
+        
+
+        
+        # add_widget(widget, index=0, canvas=None)
+        
+        # layout = GridLayout(cols=2, row_force_default=True, row_default_height=100)
+        # layout.add_widget(Label(text = "Track 1", font_size = 30,
+        #         color=dark_teal),width)
+        # layout.add_widget(make_button('',1,1,1,1))
+        # layout.add_widget(Button(text='Hello 2', size_hint_x=None, width=100))
+        # layout.add_widget(Button(text='World 2'))
+        # layout.add_widget(Button(text='Hello 3', size_hint_x=None, width=100))
+        # layout.add_widget(Button(text='World 3'))
+
+
+
+        button_back = make_bg_button('Back', .1, .15, .01, .85)
         button_back.bind(on_press=self.go_to_callback('record'))
+
 
         screen.add_widget(label1)
         screen.add_widget(button_back)
