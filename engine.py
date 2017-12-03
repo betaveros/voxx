@@ -37,7 +37,7 @@ def snap_to_template(pitch, template, aggro):
     # template = (0, 2, 4, 5, 7, 9, 11, 12)
     if pitch == 0: return 0
     octave = 12 * (pitch // 12)
-    print(template, pitch, template, aggro)
+    # print(template, pitch, template, aggro)
     return int(octave + min(template, key=lambda (p, w): abs(p - (pitch - octave)) / w ** aggro)[0])
 
 def push_near(anchor, pitch, max_jump):
@@ -137,7 +137,7 @@ class VoxxEngine(object):
         while True:
             frame = int(round(Audio.sample_rate * 60.0 / self.bpm * tick / kTicksPerQuarter))
             end_frame = int(round(Audio.sample_rate * 60.0 / self.bpm * (tick + tick_unit) / kTicksPerQuarter))
-            print(frame, end_frame)
+            # print(frame, end_frame)
             unknown_slice = buf.get_frames(frame, end_frame)
             if not unknown_slice.size: break
             mono_slice = unknown_slice[::buf.get_num_channels()]
@@ -145,7 +145,7 @@ class VoxxEngine(object):
             cur_pitch = majority_pitch(segments, cur_template, aggro)
             if last_pitch and cur_pitch:
                 cur_pitch = push_near(last_pitch, cur_pitch, 10)
-            print(cur_pitch)
+            # print(cur_pitch)
 
             raw_pitch_segments.extend(segments)
             processed_pitch_segments.append((cur_pitch, mono_slice.size))
