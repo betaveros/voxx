@@ -404,11 +404,12 @@ def make_bg_button(text, size_hint_x, size_hint_y, pos_hint_x, pos_hint_y, font_
     return make_button(text, size_hint_x, size_hint_y, pos_hint_x, pos_hint_y, font_size, color=black, bg_color=background)
 
 class Layer(object):
-    def __init__(self, instrument, data, gain, pitch_snap):
+    def __init__(self, instrument, data, gain, pitch_snap, note_ticks):
         self.instrument = instrument
         self.data = data
         self.gain = gain
         self.pitch_snap = pitch_snap
+        self.note_ticks = note_ticks
 
 class MainMainWidget1(ScreenManager):
 
@@ -424,7 +425,7 @@ class MainMainWidget1(ScreenManager):
         self.recording = False
         self.input_buffers = []
         self.layers = []
-        self.cur_layer = Layer(40, None, 100, 20)
+        self.cur_layer = Layer(40, None, 100, 20, 80)
 
         self.channel_select = 0
 
@@ -782,6 +783,9 @@ class MainMainWidget1(ScreenManager):
 
         self.engine.set_chord_template(chords_gen.chord_generater(chords, (key_root, key_mode), self.rhythm))
 
+    def get_note_ticks(self):
+        return (40, 60, 80, 120, 240)[int(round(self.layer_note_ticks_slider.value))]
+
     def make_record_screen(self):
         screen = ScreenWithBackground('record')
 
@@ -815,10 +819,13 @@ class MainMainWidget1(ScreenManager):
         def change_layer_pitch_snap(instance, value):
             self.cur_layer.pitch_snap = value
         self.pitch_snap_slider.bind(value=change_layer_pitch_snap)
-        self.rhythm_snap_slider = Slider(
-                min=0, max=100, value=0, orientation='vertical',
+        self.layer_note_ticks_slider = Slider(
+                min=0, max=4, value=2, orientation='vertical',
                 size_hint=(.1, .3),
                 pos_hint={'x': .4, 'y': .15})
+        def change_note_ticks_value(instance, value):
+            self.cur_layer.note_ticks = self.get_note_ticks()
+        self.layer_note_ticks_slider.bind(value=change_note_ticks_value)
 
         label_background_gain = Label(text='background\nvolume',
                 font_size = 30,
@@ -855,7 +862,7 @@ class MainMainWidget1(ScreenManager):
                 data_array = WaveArray(layer.data, 2)
                 instrument = layer.instrument
                 processed_data, raw_pitches, processed_pitches = self.engine.process(
-                        data_array, instrument, layer.gain, layer.pitch_snap)
+                        data_array, instrument, layer.gain, layer.pitch_snap, layer.note_ticks)
 
                 self.raw_segments_widget.display.set_segments(raw_pitches)
                 self.processed_segments_widget.display.set_segments(processed_pitches)
@@ -881,7 +888,8 @@ class MainMainWidget1(ScreenManager):
                 self.layers.append(self.cur_layer)
                 self.cur_layer = Layer(self.instrument_input.int_value, None,
                         self.layer_gain_slider.value,
-                        self.layer_pitch_snap_slider.value)
+                        self.layer_pitch_snap_slider.value,
+                        self.get_note_ticks())
 
             self.update_record_screen()
 
@@ -922,7 +930,7 @@ class MainMainWidget1(ScreenManager):
         screen.add_widget(self.background_gain_slider)
         screen.add_widget(self.layer_gain_slider)
         screen.add_widget(self.pitch_snap_slider)
-        screen.add_widget(self.rhythm_snap_slider)
+        screen.add_widget(self.layer_note_ticks_slider)
         screen.add_widget(label_background_gain)
         screen.add_widget(label_layer_gain)
         screen.add_widget(label_pitch_snap)

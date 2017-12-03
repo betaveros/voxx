@@ -75,7 +75,6 @@ class VoxxEngine(object):
         # self.note_instrument = 40 # violin
         self.chord_instrument = 24 # flute?
         self.bpm = 120
-        self.tick_unit = 80
 
     def play_lines(self, synth, scheduler, gain_callback, text_callback):
 
@@ -108,7 +107,7 @@ class VoxxEngine(object):
         self.chords = ct.chords
         self.duration_texts = ct.duration_texts
 
-    def process(self, buf, note_instrument, layer_gain, aggro, chords_gain = None):
+    def process(self, buf, note_instrument, layer_gain, aggro, tick_unit, chords_gain = None):
 
         pitch = PitchDetector()
         synth = Synth('data/FluidR3_GM.sf2')
@@ -137,7 +136,7 @@ class VoxxEngine(object):
         last_pitch = 0
         while True:
             frame = int(round(Audio.sample_rate * 60.0 / self.bpm * tick / kTicksPerQuarter))
-            end_frame = int(round(Audio.sample_rate * 60.0 / self.bpm * (tick + self.tick_unit) / kTicksPerQuarter))
+            end_frame = int(round(Audio.sample_rate * 60.0 / self.bpm * (tick + tick_unit) / kTicksPerQuarter))
             print(frame, end_frame)
             unknown_slice = buf.get_frames(frame, end_frame)
             if not unknown_slice.size: break
@@ -161,9 +160,9 @@ class VoxxEngine(object):
             synth_data, continue_flag = synth.generate(end_frame - frame, 2)
             ret_data_list.append(synth_data)
 
-            tick += self.tick_unit
+            tick += tick_unit
 
-            chord_tick += self.tick_unit
+            chord_tick += tick_unit
             if chord_tick >= self.chords[chord_idx].duration:
                 chord_idx = (chord_idx + 1) % len(self.chords)
                 cur_template = make_snap_template(self.chords[chord_idx])
@@ -171,7 +170,7 @@ class VoxxEngine(object):
 
             if chords_gain is not None:
                 for i, ((note_idx, note_tick), line) in enumerate(zip(line_progress, self.lines)):
-                    note_tick += self.tick_unit
+                    note_tick += tick_unit
                     if note_tick >= line[note_idx][0]:
                         synth.noteoff(CHORD_CHANNEL, line[note_idx][1])
                         note_idx = (note_idx + 1) % len(line)
