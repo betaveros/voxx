@@ -719,8 +719,6 @@ class MainMainWidget1(ScreenManager):
         self.mixer.add(self.synth)
         self.mixer.add(self.sched)
 
-
-
         self.audio.set_generator(self.mixer)
 
         Clock.schedule_interval(self.on_update, 0)
@@ -735,6 +733,7 @@ class MainMainWidget1(ScreenManager):
         label2 = Label(text='Set Background Track',
                 font_size = 70,
                 size_hint=(.7, .3), pos_hint={'x':.15, 'y':.4},
+                font_name = 'fonts/AmaticSC-Regular.ttf',
                 color=dark_teal)
 
         g = CoralButtonGroup()
