@@ -774,7 +774,7 @@ class MainMainWidget1(ScreenManager):
 
 
         for i in range(N):
-            self.y_pos.append(0.7-0.08*i)
+            self.y_pos.append(0.65-0.08*i)
             self.track = make_button('',0.7,0.05,0.2,self.y_pos[i])
             self.tracks.append(self.track)
 
@@ -805,14 +805,20 @@ class MainMainWidget1(ScreenManager):
         # layout.add_widget(Button(text='Hello 3', size_hint_x=None, width=100))
         # layout.add_widget(Button(text='World 3'))
 
+        self.play_button = make_button('Play', .1, .07, .33, .75, 50)
+        self.play_all_button = make_button('Play All', .2, .07, .48, .75, 50)
+
 
 
         button_back = make_bg_button('Back', .1, .15, .01, .85)
         button_back.bind(on_press=self.go_to_callback('record'))
 
 
+
         screen.add_widget(label1)
         screen.add_widget(button_back)
+        screen.add_widget(self.play_button)
+        screen.add_widget(self.play_all_button)      
         self.add_widget(screen)
 
     def update_chord_template(self):
