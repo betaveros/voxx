@@ -723,6 +723,8 @@ class MainMainWidget1(ScreenManager):
 
         Clock.schedule_interval(self.on_update, 0)
 
+        self.update_chord_template()
+
     def make_start_screen(self):
         screen = ScreenWithBackground('start')
         label1 = Label(text=u'V\u00f6XX!',
@@ -765,10 +767,10 @@ class MainMainWidget1(ScreenManager):
                     callback=self.mood_callback(chords, key, rhythm))
             screen.add_widget(button)
 
-        add_mood_button('Happy', .15, .15, .08, .4, [6, 4, 1, 5], ['c', 'major'], 240)
-        add_mood_button('Sad'  , .15, .15, .31, .4, [1, 7, 5, 4], ['c', 'minor'], 1920)
-        add_mood_button('Epic' , .15, .15, .54, .4, [4, 1, 6, 5], ['d', 'major'], 480)
-        add_mood_button('Chill', .15, .15, .77, .4, [1, 7, 6, 5], ['f', 'minor'], 960)
+        add_mood_button('Happy', .15, .15, .08, .4, [6, 4, 1, 5], ['C', 'major'], 240)
+        add_mood_button('Sad'  , .15, .15, .31, .4, [1, 7, 5, 4], ['C', 'minor'], 1920)
+        add_mood_button('Epic' , .15, .15, .54, .4, [4, 1, 6, 5], ['D', 'major'], 480)
+        add_mood_button('Chill', .15, .15, .77, .4, [1, 7, 6, 5], ['F', 'minor'], 960)
 
         button_back = make_bg_button('Back', .1, .15, .01, .02)
         button_next = make_bg_button('Next', .1, .15, .89, .02)
@@ -865,10 +867,12 @@ class MainMainWidget1(ScreenManager):
         self.key_input = LineTextInput(
                 text = 'C',
                 size_hint=(.2, .1), pos_hint={'x':.4, 'y':.38})
+        self.key_input.bind(text=lambda instance, value: update_chord_template())
 
         self.chords_input = LineTextInput(
                 text = '1,4,5,1', 
                 size_hint=(.5, .1), pos_hint={'x':.4, 'y':.26})
+        self.chords_input.bind(text=lambda instance, value: update_chord_template())
 
         self.rhythm = 240 # TODO
 
@@ -1031,6 +1035,18 @@ class MainMainWidget1(ScreenManager):
         screen.add_widget(button_back)
         self.add_widget(screen)
 
+    def update_chord_template(self):
+        # type: () -> None
+        try:
+            chords = [int(s) for s in self.chords_input.text.split(',')]
+        except ValueError:
+            print('chords broken: ' + repr(self.chords_input.text))
+            chords = [1, 5, 6, 4]
+
+        key_root = self.key_input.text.upper()
+        key_mode = 'minor' if self.mode_group.pressed == self.button_minor else 'major'
+
+        self.engine.set_chord_template(chords_gen.chord_generater(chords, (key_root, key_mode), self.rhythm))
 
     def make_record_screen(self):
         screen = ScreenWithBackground('record')
@@ -1093,16 +1109,6 @@ class MainMainWidget1(ScreenManager):
             self.engine_playing_text = text
             self.update_record_screen()
 
-        def prep_engine():
-            try:
-                chords = [int(s) for s in self.chords_input.text.split(',')]
-            except ValueError:
-                print('chords broken: ' + repr(self.chords_input.text))
-                chords = [1, 5, 6, 4]
-
-            mode = 'minor' if self.mode_group.pressed == self.button_minor else 'major'
-            self.engine.set_chords(chords, [self.key_input.text.lower(), mode], self.rhythm)
-
         def stop_layers():
             self.mixer.remove(self.layers_mixer)
             del self.layers_mixer
@@ -1123,7 +1129,6 @@ class MainMainWidget1(ScreenManager):
                 self.engine_stop()
                 stop_layers()
             else:
-                prep_engine()
                 self.playing = True
                 self.engine_stop = self.engine.play_lines(self.synth, self.sched, get_background_gain, engine_text_callback)
                 layers = self.layers
@@ -1146,7 +1151,6 @@ class MainMainWidget1(ScreenManager):
                 stop_layers()
                 self.cur_layer.data = combine_buffers(self.input_buffers)
             else:
-                prep_engine()
                 self.input_buffers = []
                 self.recording = True
                 self.engine_stop = self.engine.play_lines(self.synth, self.sched, get_background_gain, engine_text_callback)
@@ -1215,8 +1219,9 @@ class MainMainWidget1(ScreenManager):
                 self.mode_group.press(self.button_minor)
             else:
                 print('error! unrecognized mode: ' + repr(key_mode))
-            self.rhythm = rhythm # TODO
-            # self.engine.set_chords(chords, key, rhythm)
+            self.rhythm = rhythm
+
+            self.update_chord_template()
         return callback
 
     def receive_audio(self, frames, num_channels) :

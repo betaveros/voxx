@@ -16,9 +16,11 @@ from common.clock import *
 from common.metro import *
 from common.noteseq import *
 import random
+MYPY = False
+if MYPY: from typing import List, Tuple
 
 EMOTION = [""]
-pitch_dic = {'c': 60, 'd': 62, 'e': 64, 'f': 65, 'g': 67, 'a': 69, 'b': 71}
+pitch_dic = {'C': 60, 'D': 62, 'E': 64, 'F': 65, 'G': 67, 'A': 69, 'B': 71}
 MAJOR = [0, 2, 4, 5, 7, 9, 11]
 MINOR = [0, 2, 3, 5, 7, 8, 10]
 MAJOR_NUMERALS = u'I ii iii IV V vi vii\u00b0'.split()
@@ -43,16 +45,25 @@ class DurationText(object):
 		self.duration = duration
 		self.text = text
 
+class ChordTemplate(object):
+	def __init__(self, lines, chords, duration_texts):
+		# type: (List[List[Tuple[int, int]]], List[Chord], List[DurationText]) -> None
+		self.lines = lines # type: List[List[Tuple[int, int]]]
+		self.chords = chords # type: List[Chord]
+		self.duration_texts = duration_texts # type: List[DurationText]
+
 # Test NoteSequencer: a class that plays a single sequence of notes.
 #240 ticks: eighth note, 
 
-#chords is a list of chord progressions [1,4,5,1], each number stands for one measure
+#chord_degs is a list of chord progressions [1,4,5,1], each number stands for one measure
 #key is a list of strings representing the key, eg: ['c', 'major']
 # rhythm is a number stands for the fastest note in the progression eg: 120, 240, 480, 960
 
-def chord_generater(chords, key, rhythm):
-	starting_note = pitch_dic[key[0]]
-	if key[1] == 'major':
+def chord_generater(chord_degs, key, rhythm):
+	# type: (List[int], Tuple[str, str], int) -> ChordTemplate
+	key_root, key_mode = key
+	starting_note = pitch_dic[key_root]
+	if key_mode == 'major':
 		scale = MAJOR
 		numerals = MAJOR_NUMERALS
 	else:
@@ -66,7 +77,7 @@ def chord_generater(chords, key, rhythm):
 	mid_line = []
 	root_line = []
 	names = []
-	for chord in chords:
+	for chord in chord_degs:
 		top_line.append(scale_notes[(chord + 3) % 7])
 		mid_line.append(scale_notes[(chord + 1) % 7])
 		root_line.append(scale_notes[(chord -1) % 7])
@@ -78,26 +89,25 @@ def chord_generater(chords, key, rhythm):
 
 	one_measure = RHYTHM[rhythm][random.randint(0, len(RHYTHM[rhythm]) -1 )]
 
-	top_dur_pitch =  []
-	middle_dur_pitch =  []
-	root_dur_pitch =  []
-	chords = []
-	duration_texts = []
+	top_dur_pitch    = [] # type: List[Tuple[int, int]]
+	middle_dur_pitch = [] # type: List[Tuple[int, int]]
+	root_dur_pitch   = [] # type: List[Tuple[int, int]]
+	chords = [] # type: List[Chord]
+	duration_texts = [] # type: List[DurationText]
 	for x in range(len(top_line)):
 		for note in one_measure:
-			top_dur_pitch.append([note, top_line[x]])
-			middle_dur_pitch.append([note, mid_line[x]])
-			root_dur_pitch.append([note, root_line[x]])
+			top_dur_pitch.append((note, top_line[x]))
+			middle_dur_pitch.append((note, mid_line[x]))
+			root_dur_pitch.append((note, root_line[x]))
 			chords.append(Chord(note, (top_line[x], mid_line[x], root_line[x])))
 			duration_texts.append(DurationText(note, names[x]))
 
-	return [top_dur_pitch, middle_dur_pitch, root_dur_pitch, chords, duration_texts]
+	return ChordTemplate([top_dur_pitch, middle_dur_pitch, root_dur_pitch], chords, duration_texts)
 
 #emotion is a string representing the emotion: eg: 'happy', 'sad'
 #measure is a number 
 def progression(emotion, measure):
 	pass
-
 
 class MainWidget(BaseWidget) :
     def __init__(self):
