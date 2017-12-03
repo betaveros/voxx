@@ -857,13 +857,13 @@ class MainMainWidget1(ScreenManager):
             self.cur_layer.gain = int(round(value))
         self.layer_gain_slider.bind(value=change_layer_gain)
 
-        self.pitch_snap_slider = Slider(
+        self.layer_pitch_snap_slider = Slider(
                 min=0, max=20, value=20, orientation='vertical',
                 size_hint=(.1, .3),
                 pos_hint={'x': .3, 'y': .15})
         def change_layer_pitch_snap(instance, value):
             self.cur_layer.pitch_snap = value
-        self.pitch_snap_slider.bind(value=change_layer_pitch_snap)
+        self.layer_pitch_snap_slider.bind(value=change_layer_pitch_snap)
         self.layer_note_ticks_slider = Slider(
                 min=0, max=4, value=2, orientation='vertical',
                 size_hint=(.1, .3),
@@ -974,7 +974,7 @@ class MainMainWidget1(ScreenManager):
         screen.add_widget(button_instrument)
         screen.add_widget(self.background_gain_slider)
         screen.add_widget(self.layer_gain_slider)
-        screen.add_widget(self.pitch_snap_slider)
+        screen.add_widget(self.layer_pitch_snap_slider)
         screen.add_widget(self.layer_note_ticks_slider)
         screen.add_widget(label_background_gain)
         screen.add_widget(label_layer_gain)
