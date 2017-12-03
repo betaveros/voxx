@@ -322,269 +322,6 @@ class SegmentsDisplayWidget(BaseWidget):
     def redraw(self, x, y):
         self.display.set_pos(self.pos)
 
-class MainWidget1(BaseWidget) :
-    def __init__(self):
-        super(MainWidget1, self).__init__()
-
-        self.writer = AudioWriter('data') # for debugging audio output
-        self.audio = Audio(NUM_CHANNELS, self.writer.add_audio, input_func=self.receive_audio)
-        self.mixer = Mixer()
-        self.io_buffer = IOBuffer()
-        self.mixer.add(self.io_buffer)
-
-        self.synth = Synth('data/FluidR3_GM.sf2')
-        self.synth.program(0, 0, 40) # violin
-        self.synth.program(0, 0, 73) # flute
-        self.synth.program(1, 0, 24)
-        self.synth_note = 0
-        self.last_note = 60 # always nonzero, user's note won't be too far away
-        self.max_jump = 10
-        self.pitch_offset_index = 2
-        self.snap_chance_index = 2
-        self.is_random = False
-        self.quantization_unit_index = 3
-        self.mixer.add(self.synth)
-
-        self.note_votes = Counter()
-
-        self.onset_detector = OnsetDectior(self.on_onset)
-        self.pitch = PitchDetector()
-
-        self.recording = False
-        self.monitor = False
-        self.channel_select = 0
-        self.input_buffers = []
-        self.live_wave = None
-
-        self.info = topleft_label()
-        self.info.color = (0, 0, 0, 1)
-        self.add_widget(self.info)
-
-        self.anim_group = AnimGroup()
-
-        self.mic_meter = MeterDisplay((50, 25),  150, (-96, 0), (0.0,0.6,0.1))
-        self.mic_graph = GraphDisplay((110, 25), 150, 300, (-96, 0), (0.0,0.6,0.1))
-
-        self.pitch_meter = MeterDisplay((50, 200), 300, (30, 90), (.9,.1,.3))
-        self.pitch_graph = GraphDisplay((110, 200), 300, 300, (30, 90), (.9,.1,.3))
-
-        self.output_pitch_graph = GraphDisplay((110, 200), 300, 300, (30, 90), (0.0,0.0,1.0))
-
-        self.canvas.add(self.mic_meter)
-        self.canvas.add(self.mic_graph)
-        self.canvas.add(self.pitch_meter)
-        self.canvas.add(self.pitch_graph)
-        self.canvas.add(self.output_pitch_graph)
-
-        self.canvas.add(self.anim_group)
-
-        self.onset_disp = None
-        self.cur_pitch = 0
-        # self.chord_seq = chords_gen.chord_generater([1, 3, 6, 4, 2, 7], ['e', 'minor'], 240)[3]
-        self.chord_seq = demo_chords.which
-        self.next_template = make_snap_template(self.chord_seq[0])
-
-        self.recording_idx = 0
-
-        self.tempo_map  = SimpleTempoMap(120)
-        self.sched = AudioScheduler(self.tempo_map)
-        self.mixer.add(self.sched)
-
-        self.audio.set_generator(self.mixer)
-
-    def get_pitch_offset(self):
-        return (-24, -12, 0, 12, 24)[self.pitch_offset_index]
-
-    def get_snap_chance(self):
-        return self.snap_chance_index / 2.0
-
-    def get_quantization_unit(self):
-        return (40, 60, 80, 120, 240)[self.quantization_unit_index]
-
-    def next_note_play(self, tick, (melody, i)):
-
-        self.synth.noteoff(CHORD_CHANNEL, melody[(i - 1)%len(melody)][1])
-        self.synth.noteon(CHORD_CHANNEL, melody[i][1], 100)
-        self.sched.post_at_tick(tick + melody[i][0], self.next_note_play, (melody, (i + 1) % (len(melody))))
-
-    def next_note(self, tick, (ci, ct)):
-        # print('next note')
-
-        TICK_UNIT = self.get_quantization_unit()
-
-
-        cur_duration = self.chord_seq[ci].duration
-        # vote on this next:
-        if ct + TICK_UNIT < cur_duration:
-            nci, nct = ci, ct + TICK_UNIT
-            ticks_to_next = TICK_UNIT
-        else:
-            nci, nct = (ci + 1)%len(self.chord_seq), 0
-            ticks_to_next = cur_duration
-
-        if self.note_votes:
-            maj_note = max(self.note_votes.items(), key=lambda x: x[1])[0]
-            # print('=' * 100)
-            # print('MAJ NOTE', maj_note)
-            # print('=' * 100)
-            if maj_note != self.synth_note:
-                CHANNEL = 0
-                self.synth.noteoff(CHANNEL, int(self.synth_note))
-                self.synth_note = maj_note
-                if self.synth_note != 0:
-                    self.last_note = self.synth_note
-                    self.synth.noteon(CHANNEL, int(self.synth_note), 100)
-            self.note_votes = Counter()
-
-        self.next_template = make_snap_template(self.chord_seq[nci].notes)
-
-        self.sched.post_at_tick(tick + TICK_UNIT, self.next_note, (nci, nct))
-
-    def on_update(self) :
-        self.audio.on_update()
-        self.anim_group.on_update()
-
-        self.info.text = 'fps:%d\n' % kivyClock.get_fps()
-        self.info.text += 'load:%.2f\n' % self.audio.get_cpu_load()
-        self.info.text += 'gain:%.2f\n' % self.mixer.get_gain()
-        self.info.text += "pitch: %.1f (o: %+d)\n" % (self.cur_pitch, self.get_pitch_offset())
-        self.info.text += "j/k: max jump: %d\n" % self.max_jump
-        self.info.text += "q: quantization: %d" % self.get_quantization_unit()
-        self.info.text += " / s: snap: %.2f\n" % self.get_snap_chance()
-        self.info.text += "z: random input: %s\n" % ("OFF", "ON")[self.is_random]
-
-        self.info.text += "c: analyzing channel:%d\n" % self.channel_select
-        self.info.text += "r: toggle recording: %s\n" % ("OFF", "ON")[self.recording]
-        self.info.text += "m: monitor: %s\n" % ("OFF", "ON")[self.monitor]
-        self.info.text += "p: playback memory buffer"
-
-    def receive_audio(self, frames, num_channels) :
-        # print '#', frames.size
-        # handle 1 or 2 channel input.
-        # if input is stereo, mono will pick left or right channel. This is used
-        # for input processing that must receive only one channel of audio (RMS, pitch, onset)
-        if num_channels == 2:
-            mono = frames[self.channel_select::2] # pick left or right channel
-        else:
-            mono = frames
-
-        # Microphone volume level, take RMS, convert to dB.
-        # display on meter and graph
-        rms = np.sqrt(np.mean(mono ** 2))
-        rms = np.clip(rms, 1e-10, 1) # don't want log(0)
-        db = 20 * np.log10(rms)      # convert from amplitude to decibels 
-        self.mic_meter.set(db)
-        self.mic_graph.add_point(db)
-
-        # pitch detection: get pitch and display on meter and graph
-        self.cur_pitch = self.pitch.write(mono)
-        if self.is_random:
-            self.cur_pitch = random.randint(40, 80)
-        self.pitch_meter.set(self.cur_pitch)
-        self.pitch_graph.add_point(self.cur_pitch)
-
-        pitch = self.cur_pitch
-        if pitch:
-            pitch += self.get_pitch_offset()
-            pitch = push_near(self.last_note, pitch, self.max_jump)
-            if random.random() < self.get_snap_chance():
-                cur_note = snap_to_template(pitch, self.next_template, 1)
-            else:
-                cur_note = int(round(pitch))
-        else:
-            cur_note = 0
-        self.note_votes[cur_note] += len(frames)
-        # print(cur_note)
-        # cur_note = 60
-
-        self.output_pitch_graph.add_point(self.synth_note)
-
-        # onset detection and classification
-        self.onset_detector.write(mono)
-
-        # optionally send input out to speaker for live playback
-        # note that this will have a ton of latency and is therefore not
-        # practical
-        if self.monitor:
-            self.io_buffer.write(frames)
-
-        # record to internal buffer for later playback as a WaveGenerator
-        if self.recording:
-            self.input_buffers.append(frames)
-
-
-    def on_onset(self, msg):
-        if msg == 'onset':
-            self.onset_disp = OnsetDisplay((random.randint(650, 750), 100))
-            self.anim_group.add(self.onset_disp)
-        elif self.onset_disp:
-            self.onset_disp.set_type(msg)
-            self.onset_disp = None
-
-    def on_key_down(self, keycode, modifiers):
-        # toggle recording
-        if keycode[1] == 'r':
-            if self.recording:
-                self._process_input(self.recording_idx)
-                self.recording_idx = self.recording_idx + 1
-            self.recording = not self.recording
-
-        if keycode[1] == 'x':
-            self.writer.toggle()
-
-        # toggle monitoring
-        if keycode[1] == 'm':
-            self.monitor = not self.monitor
-
-        # play back live buffer
-        if keycode[1] == 'p':
-            if self.live_wave:
-                self.mixer.add(WaveGenerator(self.live_wave))
-
-        if keycode[1] == 'c' and NUM_CHANNELS == 2:
-            self.channel_select = 1 - self.channel_select
-
-        # toggle snap
-        if keycode[1] == 's':
-            self.snap_chance_index = (self.snap_chance_index + 1) % 3
-
-        # toggle octave offset
-        if keycode[1] == 'o':
-            self.pitch_offset_index = (self.pitch_offset_index + 1) % 5
-
-        # quantization
-        if keycode[1] == 'q':
-            self.quantization_unit_index = (self.quantization_unit_index + 1) % 5
-
-        # toggle random input
-        if keycode[1] == 'z':
-            self.is_random = not self.is_random
-
-        # toggle jump
-        if keycode[1] == 'j' and self.max_jump > 7:
-            self.max_jump -= 1
-        if keycode[1] == 'k':
-            self.max_jump += 1
-
-        if keycode[1] == 'spacebar':
-            self.next_note(self.sched.get_tick(), (0, 0)) # specifies what was just voted on and should start playing
-            self.next_note_play(self.sched.get_tick(), (demo_chords.baseline, 0))
-            self.next_note_play(self.sched.get_tick(), (demo_chords.guitar2, 0))
-            self.next_note_play(self.sched.get_tick(), (demo_chords.guitar3, 0))
-
-        # adjust mixer gain
-        gf = lookup(keycode[1], ('up', 'down'), (1.1, 1/1.1))
-        if gf:
-            new_gain = self.mixer.get_gain() * gf
-            self.mixer.set_gain( new_gain )
-
-    def _process_input(self,idx) :
-        data = combine_buffers(self.input_buffers)
-        print 'live buffer size:', len(data) / NUM_CHANNELS, 'frames'
-        write_wave_file(data, NUM_CHANNELS, 'recording' + str(REC_INDEX[idx]) + '.wav' )
-        self.live_wave = WaveArray(data, NUM_CHANNELS)
-        self.input_buffers = []
-
 class ScreenWithBackground(Screen):
     def __init__(self, name, rgba = (0.694, 0.976, 0.988, 1)):
         super(Screen, self).__init__(name=name)
@@ -704,10 +441,6 @@ class MainMainWidget1(ScreenManager):
         self.make_tracks_screen()
 
         self.make_instrument_screen()
-        main_screen = ScreenWithBackground('main')
-        self.w1 = MainWidget1()
-        main_screen.add_widget(self.w1)
-        self.add_widget(main_screen)
 
         self.engine = VoxxEngine()
 
@@ -1086,7 +819,7 @@ class MainMainWidget1(ScreenManager):
                 min=0, max=100, value=0, orientation='vertical',
                 size_hint=(.1, .3),
                 pos_hint={'x': .4, 'y': .15})
-        
+
         label_background_gain = Label(text='background\nvolume',
                 font_size = 30,
                 size_hint=(.1, .05), pos_hint={'x':.1, 'y':.05},
@@ -1247,10 +980,9 @@ class MainMainWidget1(ScreenManager):
             self.input_buffers.append(frames)
 
     def on_update(self, dt):
-        # self.w1.on_update()
         self.audio.on_update()
     def on_key_down(self, keycode, modifiers):
-        self.w1.on_key_down(keycode, modifiers)
+        pass
 
 REC_INDEX = [1,2,3,4,5,6,7,8,9]
 # pass in which MainWidget to run as a command-line arg
