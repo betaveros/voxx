@@ -845,9 +845,19 @@ class MainMainWidget1(ScreenManager):
                 size_hint=(.5, .1), pos_hint={'x':.25, 'y':.75},
 
                 color=(0, 0.5, 0.6, 1))
+        
         self.play_button = make_button('Play', .2, .1, .25, .85, 80)
         self.record_button = make_button('Record', .2, .1, .55, .85, 80)
-        self.save_button = make_button('Save', .2, .1, .6, .1, 100)
+        self.save_button = make_button('Save', .18, .1, .5, .2, 50)
+        self.delete_button = make_button('Delete Track', .18, .1, .7, .2, 45)
+
+
+        button_instrument = make_button('   Change\nInstrument', .18, .1, .5, .3, 50)
+        button_instrument.bind(on_press=self.go_to_callback('instrument'))
+
+        button_all_tracks = make_button('All Tracks', .18, .15, .7, .3, 50)
+        button_all_tracks.bind(on_press=self.go_to_callback('tracks'))
+
 
         self.background_gain_slider = Slider(
                 min=0, max=100, value=100, orientation='vertical',
@@ -962,11 +972,7 @@ class MainMainWidget1(ScreenManager):
         self.save_button.bind(on_press=save)
         self.record_button.bind(on_press=record)
 
-        button_instrument = make_button('   Change\nInstrument', .18, .15, .5, .3, 50)
-        button_instrument.bind(on_press=self.go_to_callback('instrument'))
-
-        button_all_tracks = make_button('All Tracks', .18, .15, .7, .3, 50)
-        button_all_tracks.bind(on_press=self.go_to_callback('tracks'))
+    
 
         button_cancel = make_bg_button('Cancel',.1, .1, .85, .02)
         button_cancel.bind(on_press=self.go_to_callback('start'))
@@ -975,6 +981,7 @@ class MainMainWidget1(ScreenManager):
         screen.add_widget(self.play_button)
         screen.add_widget(self.save_button)
         screen.add_widget(self.record_button)
+        screen.add_widget(self.delete_button)
         screen.add_widget(button_cancel)
         screen.add_widget(button_all_tracks)
         screen.add_widget(button_instrument)
