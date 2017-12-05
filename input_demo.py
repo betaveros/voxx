@@ -470,7 +470,7 @@ class MainMainWidget1(ScreenManager):
                 color= dark_teal)
 
         label2 = Label(text='Set Background Track',
-                font_size = 70,
+                font_size = 100,
                 size_hint=(.7, .3), pos_hint={'x':.15, 'y':.4},
                 font_name = 'fonts/AmaticSC-Regular.ttf',
                 color=dark_teal)
@@ -494,8 +494,9 @@ class MainMainWidget1(ScreenManager):
     def make_mood_screen_1(self):
         screen = ScreenWithBackground('mood1')
         label = Label(text='What mood would you like today?',
-                font_size = 100,
+                font_size = 120,
                 size_hint=(.5, .3), pos_hint={'x':.25, 'y':.6},
+                font_name = 'fonts/AmaticSC-Bold.ttf',
                 color=(0, 0.5, 0.6, 1))
 
         mood_group = CoralButtonGroup()
@@ -528,11 +529,13 @@ class MainMainWidget1(ScreenManager):
         label1 = Label(text='Almost done!',
                 font_size = 150,
                 size_hint=(.5, .3), pos_hint={'x':.25, 'y':.7},
+                font_name = 'fonts/AmaticSC-Bold.ttf',
                 color=dark_teal)
 
         label2 = Label(text='Set length of the background loop',
-                font_size = 80,
+                font_size = 100,
                 size_hint=(.5, .3), pos_hint={'x':.25, 'y':.5},
+                font_name = 'fonts/AmaticSC-Regular.ttf',
                 color=dark_teal)
 
         self.measure_group = CoralButtonGroup()
@@ -569,33 +572,39 @@ class MainMainWidget1(ScreenManager):
         label1 = Label(text='Advanced Settings',
                 font_size = 150,
                 size_hint=(.5, .3), pos_hint={'x':.25, 'y':.7},
+                font_name = 'fonts/AmaticSC-Bold.ttf',
                 color= dark_teal)
 
         label2 = Label(text='for your masterpiece',
-                font_size = 80,
+                font_size = 100,
                 size_hint=(.5, .3), pos_hint={'x':.25, 'y':.55},
+                font_name = 'fonts/AmaticSC-Bold.ttf',
                 color=dark_teal)
 
 
         label3 = Label(text='Set Tempo:',
-                font_size = 80,
+                font_size = 100,
                 size_hint=(.3, .1), pos_hint={'x':.1, 'y':.5},
-                color= dark_teal)
+                font_name = 'fonts/AmaticSC-Regular.ttf',
+                color= black)
 
         label4 = Label(text='Set Key:',
-                font_size = 80,
+                font_size = 100,
                 size_hint=(.3, .1), pos_hint={'x':.1, 'y':.38},
-                color= dark_teal)
+                font_name = 'fonts/AmaticSC-Regular.ttf',
+                color= black)
 
         label5 = Label(text='Set Chords:',
-                font_size = 80,
+                font_size = 100,
                 size_hint=(.3, .1), pos_hint={'x':.1, 'y':.26},
-                color= dark_teal)
+                font_name = 'fonts/AmaticSC-Regular.ttf',
+                color= black)
 
         label6 = Label(text='BPM',
-                font_size = 60,
-                size_hint=(.3, .05), pos_hint={'x':.51, 'y':.5},
-                color= dark_teal)
+                font_size = 80,
+                size_hint=(.3, .05), pos_hint={'x':.5, 'y':.5},
+                font_name = 'fonts/AmaticSC-Regular.ttf',
+                color= black)
 
         self.bpm_input = IntInput(
                 text = '120',
@@ -645,20 +654,22 @@ class MainMainWidget1(ScreenManager):
     def make_rhythm_screen(self):
         screen = ScreenWithBackground('rhythm')
         label1 = Label(text='What rhythm would you like?',
-                font_size = 100,
+                font_size = 120,
                 size_hint=(.5, .3), pos_hint={'x':.25, 'y':.7},
+                font_name = 'fonts/AmaticSC-Bold.ttf',
                 color=dark_teal)
 
         label2 = Label(text='Select the fastest notes you want in your chord',
-                font_size = 50,
-                size_hint=(.6, .2), pos_hint={'x':.2, 'y':.56},
+                font_size = 70,
+                size_hint=(.6, .2), pos_hint={'x':.2, 'y':.62},
+                font_name = 'fonts/Caveat-Regular.ttf',
                 color=dark_teal)
 
 
         self.speed_group = CoralButtonGroup()
-        button_slow = self.speed_group.make_button('Slow\n (1/4 note)',   .2, .15, .1, .4)
-        button_mid  = self.speed_group.make_button('Medium\n (1/8 note)', .2, .15, .4, .4)
-        button_fast = self.speed_group.make_button('Fast\n (1/16 note)',  .2, .15, .7, .4)
+        button_slow = self.speed_group.make_button('Slow\n (1/4 note)',   .2, .25, .1, .32)
+        button_mid  = self.speed_group.make_button('Medium\n (1/8 note)', .2, .25, .4, .32)
+        button_fast = self.speed_group.make_button('Fast\n (1/16 note)',  .2, .25, .7, .32)
 
         button_preview = make_button('Preview', .2, .15, 0.41, 0.03)
 
@@ -684,23 +695,26 @@ class MainMainWidget1(ScreenManager):
     def make_instrument_screen(self):
         screen = ScreenWithBackground('instrument')
         label1 = Label(text='Select Instrument',
-                font_size = 100,
+                font_size = 150,
                 size_hint=(.7, .2), pos_hint={'x':.15, 'y':.8},
+                font_name = 'fonts/AmaticSC-Bold.ttf',
                 color=dark_teal)
 
         label2 = Label(text='Quick Selection',
-                font_size = 60,
+                font_size = 100,
                 size_hint=(.38, .2), pos_hint={'x':.5, 'y':.65},
-                color=dark_teal)
+                font_name = 'fonts/AmaticSC-Regular.ttf',
+                color=black)
 
 
         label3 = Label(text='MIDI Number',
-                font_size = 70,
+                font_size = 100,
                 size_hint=(.18, .15), pos_hint={'x':.15, 'y':.65},
-                color=dark_teal)
+                font_name = 'fonts/AmaticSC-Regular.ttf',
+                color=black)
 
         self.instrument_input = IntInput(
-                text = '40', # violin?? idk
+                text = '40', #Violin
                 size_hint=(.18, .15), pos_hint={'x':.15, 'y':.5})
 
         def add_instrument_button(num, name, sx, sy, px, py):
@@ -764,7 +778,7 @@ class MainMainWidget1(ScreenManager):
         label1 = Label(text='All Saved Tracks',
                 font_size = 100,
                 size_hint=(.5, .3), pos_hint={'x':.25, 'y':.75},
-                font_name = 'fonts/AmaticSC-Regular.ttf',
+                font_name = 'fonts/AmaticSC-Bold.ttf',
                 color=dark_teal)
         N=8
         self.y_pos = []
@@ -783,27 +797,15 @@ class MainMainWidget1(ScreenManager):
 
             self.label = Label(text='Track  '+ str(i+1),
                 font_size = 40,
-                size_hint=(.08, .05), pos_hint={'x':.02, 'y':self.y_pos[i]},
-                font_name = 'fonts/AmaticSC-Regular.ttf',
-                color=dark_teal)
+                size_hint=(.08, .05), pos_hint={'x':.03, 'y':self.y_pos[i]},
+                font_name = 'fonts/AmaticSC-Bold.ttf',
+                color=black)
             self.track_labels.append(self.label)
 
             screen.add_widget(self.tracks[i])
             screen.add_widget(self.select_buttons[i])
             screen.add_widget(self.track_labels[i])
         
-
-        
-        # add_widget(widget, index=0, canvas=None)
-        
-        # layout = GridLayout(cols=2, row_force_default=True, row_default_height=100)
-        # layout.add_widget(Label(text = "Track 1", font_size = 30,
-        #         color=dark_teal),width)
-        # layout.add_widget(make_button('',1,1,1,1))
-        # layout.add_widget(Button(text='Hello 2', size_hint_x=None, width=100))
-        # layout.add_widget(Button(text='World 2'))
-        # layout.add_widget(Button(text='Hello 3', size_hint_x=None, width=100))
-        # layout.add_widget(Button(text='World 3'))
 
         self.play_button = make_button('Play', .1, .07, .33, .75, 50)
         self.play_all_button = make_button('Play All', .2, .07, .48, .75, 50)
@@ -841,23 +843,32 @@ class MainMainWidget1(ScreenManager):
         screen = ScreenWithBackground('record')
 
         self.record_label = Label(text='...',
-                font_size = 50,
-                size_hint=(.5, .1), pos_hint={'x':.25, 'y':.75},
-
+                font_size = 70,
+                size_hint=(.3, .1), pos_hint={'x':.35, 'y':.85},
+                font_name = 'fonts/AmaticSC-Bold.ttf',
                 color=(0, 0.5, 0.6, 1))
         
-        self.play_button = make_button('Play', .2, .1, .25, .85, 80)
-        self.record_button = make_button('Record', .2, .1, .55, .85, 80)
-        self.save_button = make_button('Save', .18, .1, .5, .2, 50)
-        self.delete_button = make_button('Delete Track', .18, .1, .7, .2, 45)
+        self.play_button = make_button('Play', .2, .1, .1, .85, 80)
+        
+        self.record_button = make_button('Record', .2, .1, .7, .85, 80)
 
-
-        button_instrument = make_button('   Change\nInstrument', .18, .1, .5, .3, 50)
+        button_instrument = make_button('   Change\nInstrument', .18, .1, .5, .35, 40)
         button_instrument.bind(on_press=self.go_to_callback('instrument'))
 
-        button_all_tracks = make_button('All Tracks', .18, .15, .7, .3, 50)
-        button_all_tracks.bind(on_press=self.go_to_callback('tracks'))
+        button_background = make_button('   Change\nBackground', .18, .1, .7, .35, 40)
+        button_background.bind(on_press=self.go_to_callback('mood'))
 
+       	self.new_button = make_button('New Track', .18, .1, .5, .23, 45)
+
+       	button_all_tracks = make_button('All Tracks', .18, .1, .7, .23, 45)
+        button_all_tracks.bind(on_press=self.go_to_callback('tracks'))
+        
+        self.delete_button = make_button('Delete Track', .18, .1, .5, .11, 45)
+        
+        self.save_button = make_button('Save', .18, .1, .7, .11, 60, bg_color = darker_teal)       
+
+        button_cancel = make_bg_button('Cancel',.08, .09, .85, .02, 40)
+        button_cancel.bind(on_press=self.go_to_callback('start'))
 
         self.background_gain_slider = Slider(
                 min=0, max=100, value=100, orientation='vertical',
@@ -974,17 +985,16 @@ class MainMainWidget1(ScreenManager):
 
     
 
-        button_cancel = make_bg_button('Cancel',.1, .1, .85, .02)
-        button_cancel.bind(on_press=self.go_to_callback('start'))
-
         screen.add_widget(self.record_label)
         screen.add_widget(self.play_button)
-        screen.add_widget(self.save_button)
         screen.add_widget(self.record_button)
+        screen.add_widget(self.save_button)
         screen.add_widget(self.delete_button)
+        screen.add_widget(self.new_button)
         screen.add_widget(button_cancel)
-        screen.add_widget(button_all_tracks)
+        screen.add_widget(button_all_tracks)     
         screen.add_widget(button_instrument)
+        screen.add_widget(button_background)
         screen.add_widget(self.background_gain_slider)
         screen.add_widget(self.layer_gain_slider)
         screen.add_widget(self.layer_pitch_snap_slider)
@@ -995,12 +1005,12 @@ class MainMainWidget1(ScreenManager):
         screen.add_widget(label_rhythm_snap)       
 
         self.graph_widget = GraphDisplayWidget(
-                size_hint=(.5, .3), pos_hint={'x':.12, 'y':.5})
+                size_hint=(.5, 2), pos_hint={'x':.12, 'y':.6})
         self.raw_segments_widget = SegmentsDisplayWidget(
-                size_hint=(.5, .3), pos_hint={'x':.12, 'y':.5},
+                size_hint=(.5, .2), pos_hint={'x':.12, 'y':.6},
                 color= coral)
         self.processed_segments_widget = SegmentsDisplayWidget(
-                size_hint=(.5, .3), pos_hint={'x':.12, 'y':.5},
+                size_hint=(.5, .2), pos_hint={'x':.12, 'y':.6},
                 color= coral) #it's still just red rn?
         screen.add_widget(self.graph_widget)
         screen.add_widget(self.raw_segments_widget)
