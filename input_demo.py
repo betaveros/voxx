@@ -855,8 +855,8 @@ class MainMainWidget1(ScreenManager):
         button_instrument = make_button('   Change\nInstrument', .18, .1, .5, .35, 40)
         button_instrument.bind(on_press=self.go_to_callback('instrument'))
 
-        button_background = make_button('   Change\nBackground', .18, .1, .7, .35, 40)
-        button_background.bind(on_press=self.go_to_callback('mood'))
+        button_background = make_button('   Change\nProgression', .18, .1, .7, .35, 40)
+        button_background.bind(on_press=self.go_to_callback('mood1'))
 
        	self.new_button = make_button('New Track', .18, .1, .5, .23, 45)
 
@@ -983,7 +983,10 @@ class MainMainWidget1(ScreenManager):
         self.save_button.bind(on_press=save)
         self.record_button.bind(on_press=record)
 
-    
+    	K = 4
+
+
+
 
         screen.add_widget(self.record_label)
         screen.add_widget(self.play_button)
