@@ -983,8 +983,19 @@ class MainMainWidget1(ScreenManager):
         self.save_button.bind(on_press=save)
         self.record_button.bind(on_press=record)
 
-    	K = 4
-
+        #Make the chord bars below recording graph that shows which background chord you're on
+    	self.nProgression = 4 #This needs to be passed on the total number of chords in the current progression
+    	self.x_pos = []
+        self.chord_bars =[]
+        x_start = 0.12
+        x_end = 0.88
+    	
+    	for i in range (self.nProgression):
+    		bar_length= (x_end - x_start)/self.nProgression
+    		self.x_pos.append(x_start + i * bar_length)
+    		self.chord_bar = make_button('',bar_length, .05, self.x_pos[i], 0.5)
+    		self.chord_bars.append(self.chord_bar)
+    		screen.add_widget(self.chord_bars[i])
 
 
 
@@ -1008,12 +1019,12 @@ class MainMainWidget1(ScreenManager):
         screen.add_widget(label_rhythm_snap)       
 
         self.graph_widget = GraphDisplayWidget(
-                size_hint=(.5, 2), pos_hint={'x':.12, 'y':.6})
+                size_hint=(.5, 2), pos_hint={'x':.12, 'y':.58})
         self.raw_segments_widget = SegmentsDisplayWidget(
-                size_hint=(.5, .2), pos_hint={'x':.12, 'y':.6},
+                size_hint=(.5, .2), pos_hint={'x':.12, 'y':.58},
                 color= coral)
         self.processed_segments_widget = SegmentsDisplayWidget(
-                size_hint=(.5, .2), pos_hint={'x':.12, 'y':.6},
+                size_hint=(.5, .2), pos_hint={'x':.12, 'y':.58},
                 color= coral) #it's still just red rn?
         screen.add_widget(self.graph_widget)
         screen.add_widget(self.raw_segments_widget)
