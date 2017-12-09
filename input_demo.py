@@ -438,7 +438,7 @@ class Layer(object):
 
     def process_with(self, engine):
         if self._segments_cache is None:
-            data_array = WaveArray(self.data, 2)
+            data_array = WaveArray(self.data, 1)
             self._segments_cache = engine.process(data_array, self.pitch_snap, self.note_ticks, 100)
             self._rendered_cache = None
         return self._segments_cache
@@ -460,7 +460,7 @@ class MainMainWidget1(ScreenManager):
 
         self.playing = False
         self.recording = False
-        self.input_buffers = []
+        self.partial = None
         self.layers = []
         self.cur_layer_index = None
         self.cur_layer = Layer(40, None, 100, 20, 80)
@@ -991,8 +991,8 @@ class MainMainWidget1(ScreenManager):
                 raw_pitches, processed_pitches = layer.process_with(self.engine)
                 rendered_data = layer.render_with(self.engine)
 
-                self.raw_segments_widget.display.set_segments(raw_pitches)
-                self.processed_segments_widget.display.set_segments(processed_pitches)
+                # self.raw_segments_widget.display.set_segments(raw_pitches)
+                # self.processed_segments_widget.display.set_segments(processed_pitches)
                 self.layers_mixer.add(WaveGenerator(WaveArray(rendered_data, 2)))
             self.mixer.add(self.layers_mixer)
 
@@ -1033,10 +1033,11 @@ class MainMainWidget1(ScreenManager):
                 self.recording = False
                 self.engine_stop()
                 stop_layers()
-                self.cur_layer.data = combine_buffers(self.input_buffers)
+                self.cur_layer.data = combine_buffers(self.partial.all_buffers)
             else:
                 self.recording = True
-                self.input_buffers = []
+                # FIXME bpm lol!
+                self.partial = VoxxPartial(120, self.cur_layer.note_ticks, self.engine.chords, self.cur_layer.pitch_snap, 100)
                 self.engine_stop = self.engine.play_lines(self.synth, self.sched, get_background_gain, engine_text_callback)
                 # play all layers except maybe the current one
                 layers = self.layers
@@ -1134,7 +1135,9 @@ class MainMainWidget1(ScreenManager):
         self.graph_widget.graph.add_point(self.cur_pitch)
 
         if self.recording:
-            self.input_buffers.append(frames)
+            self.partial.append(frames, 2)
+            self.raw_segments_widget.display.set_segments(self.partial.all_segments)
+            self.processed_segments_widget.display.set_segments(self.partial.all_processed_segments)
 
     def on_update(self, dt):
         self.audio.on_update()

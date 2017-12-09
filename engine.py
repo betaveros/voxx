@@ -26,6 +26,9 @@ CHORD_CHANNEL = 1
 # snap = (0, 2, 4, 7, 9, 12)
 # snap = (0, 4, 7, 12)
 
+def frame_of_tick(bpm, tick):
+    return int(round(Audio.sample_rate * 60.0 / bpm * tick / kTicksPerQuarter))
+
 def make_snap_template(chord):
     # type: (Chord) -> List[Tuple[int, int]]
     template = list(sorted((p % 12, w) for p, w in chord.pitches.iteritems()))
@@ -66,6 +69,78 @@ def majority_pitch(pitch_segments, template, aggro, truncate):
             cur_note = snap_to_template(pitch, template, aggro)
         note_votes[cur_note] += weight
     return max(note_votes.items(), key=lambda x: x[1])[0]
+
+WINDOW = 1024
+
+class VoxxPartial(object):
+    def __init__(self, bpm, tick_unit, chords, aggro, truncate):
+        self.all_buffers = [] # unprocessed
+
+        self.pitch_detector = PitchDetector()
+
+        self.all_processed_segments = []
+        self.all_segments = []
+
+        # A chunk has many segments. Frames are flushed to segments, which are flushed to chunks.
+        # Unflushed raw pitch segments
+        self.unflushed_segments = []
+        self.unflushed_segments_size = 0
+        self.buffer_acc = np.array([], dtype=np.float32)
+
+        self.bpm = bpm
+        self.tick_unit = tick_unit
+        self.chords = chords
+        self.aggro = aggro
+        self.truncate = truncate
+
+        self.tick = 0
+        self.cur_template = make_snap_template(self.chords[0])
+        self.chord_idx = 0
+        self.chord_tick = 0
+        self.last_pitch = 0
+
+    def current_chunk_frames(self):
+        return frame_of_tick(self.bpm, self.tick + self.tick_unit) - frame_of_tick(self.bpm, self.tick)
+    def current_segment_frames(self):
+        return min(WINDOW, self.current_chunk_frames() - self.unflushed_segments_size)
+
+    def flush_chunk(self):
+        cur_pitch = majority_pitch(self.unflushed_segments, self.cur_template, self.aggro, self.truncate)
+        if self.last_pitch and cur_pitch:
+            cur_pitch = push_near(self.last_pitch, cur_pitch, 10)
+        self.last_pitch = cur_pitch
+
+        self.all_processed_segments.append((cur_pitch, self.unflushed_segments_size))
+
+        self.tick += self.tick_unit
+        self.chord_tick += self.tick_unit
+        self.unflushed_segments = []
+        self.unflushed_segments_size = 0
+
+        if self.chord_tick >= self.chords[self.chord_idx].duration:
+            self.chord_idx = (self.chord_idx + 1) % len(self.chords)
+            self.cur_template = make_snap_template(self.chords[self.chord_idx])
+            self.chord_tick = 0
+
+    def append(self, frames, channels):
+        mono_frames = frames[::channels]
+        self.all_buffers.append(mono_frames)
+        self.buffer_acc = np.append(self.buffer_acc, mono_frames)
+
+        # can we flush a segment?
+        while self.current_segment_frames() <= self.buffer_acc.size:
+            s = self.current_segment_frames()
+            segment_frames = self.buffer_acc[:s]
+            self.buffer_acc = self.buffer_acc[s:]
+            pitch = self.pitch_detector.write(segment_frames)
+            self.all_segments.append((pitch, segment_frames.size))
+            self.unflushed_segments.append((pitch, segment_frames.size))
+            self.unflushed_segments_size += segment_frames.size
+
+            # can we (should we) flush a chunk?
+            if self.unflushed_segments_size >= self.current_chunk_frames():
+                assert self.unflushed_segments_size == self.current_chunk_frames()
+                self.flush_chunk()
 
 class VoxxEngine(object):
     def __init__(self):
@@ -127,8 +202,8 @@ class VoxxEngine(object):
 
         last_pitch = 0
         while True:
-            frame = int(round(Audio.sample_rate * 60.0 / self.bpm * tick / kTicksPerQuarter))
-            end_frame = int(round(Audio.sample_rate * 60.0 / self.bpm * (tick + tick_unit) / kTicksPerQuarter))
+            frame = frame_of_tick(self.bpm, tick)
+            end_frame = frame_of_tick(self.bpm, tick + tick_unit)
             # print(frame, end_frame)
             unknown_slice = buf.get_frames(frame, end_frame)
             if not unknown_slice.size: break
