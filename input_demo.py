@@ -808,12 +808,18 @@ class MainMainWidget1(ScreenManager):
         self.play_selected_button.disabled = self.status not in [None, PLAYING_SELECTED]
         self.play_all_button.disabled = self.status not in [None, PLAYING_ALL]
 
+        self.button_instrument.disabled = self.status is not None
+        self.button_background.disabled = self.status is not None
+        self.button_all_tracks.disabled = self.status is not None
+
         self.play_button.text = 'Stop' if self.status == PLAYING else 'Play'
         self.record_button.text = 'Stop' if self.status == RECORDING else 'Record'
         self.play_selected_button.text = 'Stop' if self.status == PLAYING_SELECTED else 'Play'
         self.play_all_button.text = 'Stop' if self.status == PLAYING_ALL else 'Play All'
 
-        self.save_button.disabled = self.status is not None or self.cur_layer.data is None
+        self.save_button.disabled = self.status is not None or self.cur_layer_index is not None or self.cur_layer.data is None
+        self.new_button.disabled = self.status is not None or self.cur_layer_index is None
+        self.delete_button.disabled = self.status is not None or (self.cur_layer_index is None and self.cur_layer.data is None)
 
         text = u'{} layer{}'.format(len(self.layers),
                 u'' if len(self.layers) == 1 else u's')
@@ -993,16 +999,16 @@ class MainMainWidget1(ScreenManager):
 
         self.record_button = make_button('Record', .2, .1, .7, .85, 80)
 
-        button_instrument = make_button('   Change\nInstrument', .18, .1, .5, .35, 40)
-        button_instrument.bind(on_press=self.go_to_callback('instrument'))
+        self.button_instrument = make_button('   Change\nInstrument', .18, .1, .5, .35, 40)
+        self.button_instrument.bind(on_press=self.go_to_callback('instrument'))
 
-        button_background = make_button('   Change\nProgression', .18, .1, .7, .35, 40)
-        button_background.bind(on_press=self.go_to_callback('mood1'))
+        self.button_background = make_button('   Change\nProgression', .18, .1, .7, .35, 40)
+        self.button_background.bind(on_press=self.go_to_callback('mood1'))
 
         self.new_button = make_button('New Track', .18, .1, .5, .23, 45)
 
-        button_all_tracks = make_button('All Tracks', .18, .1, .7, .23, 45)
-        button_all_tracks.bind(on_press=self.go_to_callback('tracks'))
+        self.button_all_tracks = make_button('All Tracks', .18, .1, .7, .23, 45)
+        self.button_all_tracks.bind(on_press=self.go_to_callback('tracks'))
 
         self.delete_button = make_button('Delete Track', .18, .1, .5, .11, 45)
 
@@ -1082,14 +1088,30 @@ class MainMainWidget1(ScreenManager):
             if self.cur_layer_index is None:
                 if self.cur_layer.data is not None:
                     self.layers.append(self.cur_layer)
+                    self.cur_layer_index = len(self.layers) - 1
                     self.update_all_saved_layers()
+
+            self.update_record_screen()
+
+        def new_layer(instance):
+            self.cur_layer_index = None
+            self.cur_layer = Layer(self.instrument_input.int_value, None,
+                    self.layer_gain_slider.value,
+                    self.layer_pitch_snap_slider.value,
+                    self.get_note_ticks())
+            self.update_all_saved_layers()
+            self.update_record_screen()
+
+        def delete_layer(instance):
+            if self.cur_layer_index is not None:
+                del self.layers[self.cur_layer_index]
 
             self.cur_layer_index = None
             self.cur_layer = Layer(self.instrument_input.int_value, None,
                     self.layer_gain_slider.value,
                     self.layer_pitch_snap_slider.value,
                     self.get_note_ticks())
-
+            self.update_all_saved_layers()
             self.update_record_screen()
 
         def record(instance):
@@ -1111,6 +1133,8 @@ class MainMainWidget1(ScreenManager):
 
         self.play_button.bind(on_press=play)
         self.save_button.bind(on_press=save)
+        self.new_button.bind(on_press=new_layer)
+        self.delete_button.bind(on_press=delete_layer)
         self.record_button.bind(on_press=record)
 
         #Make the chord bars below recording graph that shows which background chord you're on
@@ -1136,9 +1160,9 @@ class MainMainWidget1(ScreenManager):
         screen.add_widget(self.delete_button)
         screen.add_widget(self.new_button)
         screen.add_widget(button_cancel)
-        screen.add_widget(button_all_tracks)
-        screen.add_widget(button_instrument)
-        screen.add_widget(button_background)
+        screen.add_widget(self.button_all_tracks)
+        screen.add_widget(self.button_instrument)
+        screen.add_widget(self.button_background)
         screen.add_widget(self.background_gain_slider)
         screen.add_widget(self.layer_gain_slider)
         screen.add_widget(self.layer_pitch_snap_slider)
