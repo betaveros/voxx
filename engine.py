@@ -170,7 +170,7 @@ class VoxxEngine(object):
         def next_text(tick, i):
             if stopper[0]: return
             dt = self.duration_texts[i]
-            text_callback(dt.text)
+            text_callback(i, dt.text)
             scheduler.post_at_tick(tick + dt.duration, next_text, (i + 1) % (len(self.duration_texts)))
 
         next_text(scheduler.get_tick(), 0)

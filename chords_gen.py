@@ -97,6 +97,7 @@ def chord_generater(chord_degs, key, rhythm):
 	chords = [] # type: List[Chord]
 	duration_texts = [] # type: List[DurationText]
 	for x in range(len(top_line)):
+		note_total = 0
 		for note in one_measure:
 			top_dur_pitch.append((note, top_line[x]))
 			middle_dur_pitch.append((note, mid_line[x]))
@@ -106,7 +107,8 @@ def chord_generater(chord_degs, key, rhythm):
 			pitch_dict[mid_line[x]] = 2
 			pitch_dict[root_line[x]] = 2
 			chords.append(Chord(note, pitch_dict))
-			duration_texts.append(DurationText(note, names[x]))
+			note_total += note
+		duration_texts.append(DurationText(note_total, names[x]))
 
 	return ChordTemplate([top_dur_pitch, middle_dur_pitch, root_dur_pitch], chords, duration_texts)
 

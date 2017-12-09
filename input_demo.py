@@ -988,8 +988,8 @@ class MainMainWidget1(ScreenManager):
 
 
         self.engine_playing_text = ""
-        def engine_text_callback(text):
-            self.engine_playing_text = text
+        def engine_text_callback(i, text):
+            self.engine_playing_text = "[{}] {}".format(str(i), text)
             self.update_record_screen()
 
         def stop_layers():
