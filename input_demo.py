@@ -645,6 +645,7 @@ class MainMainWidget1(ScreenManager):
         self.bpm_input = IntInput(
                 text = '120',
                 size_hint=(.2, .1), pos_hint={'x':.4, 'y':.5})
+        self.bpm_input.bind(text=lambda instance, value: self.update_chord_template())
 
         self.key_input = LineTextInput(
                 text = 'C',
@@ -883,6 +884,12 @@ class MainMainWidget1(ScreenManager):
     def update_chord_template(self):
         # type: () -> None
         try:
+            bpm = int(self.bpm_input.text)
+        except ValueError:
+            print('bpm broken: ' + repr(self.bpm_input.text))
+            bpm = 120
+
+        try:
             chords = [int(s) for s in self.chords_input.text.split(',')]
         except ValueError:
             print('chords broken: ' + repr(self.chords_input.text))
@@ -891,6 +898,7 @@ class MainMainWidget1(ScreenManager):
         key_root = self.key_input.text.upper()
         key_mode = 'minor' if self.mode_group.pressed == self.button_minor else 'major'
 
+        self.engine.bpm = bpm
         self.engine.set_chord_template(chords_gen.chord_generater(chords, (key_root, key_mode), self.rhythm))
 
     def get_note_ticks(self):
@@ -1036,8 +1044,7 @@ class MainMainWidget1(ScreenManager):
                 self.cur_layer.data = combine_buffers(self.partial.all_buffers)
             else:
                 self.recording = True
-                # FIXME bpm lol!
-                self.partial = VoxxPartial(120, self.cur_layer.note_ticks, self.engine.chords, self.cur_layer.pitch_snap, 100)
+                self.partial = self.engine.make_partial(self.cur_layer.pitch_snap, self.cur_layer.note_ticks, 100)
                 self.engine_stop = self.engine.play_lines(self.synth, self.sched, get_background_gain, engine_text_callback)
                 # play all layers except maybe the current one
                 layers = self.layers

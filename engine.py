@@ -73,7 +73,7 @@ def majority_pitch(pitch_segments, template, aggro, truncate):
 WINDOW = 1024
 
 class VoxxPartial(object):
-    def __init__(self, bpm, tick_unit, chords, aggro, truncate):
+    def __init__(self, bpm, chords, aggro, tick_unit, truncate):
         self.all_buffers = [] # unprocessed
 
         self.pitch_detector = PitchDetector()
@@ -185,47 +185,13 @@ class VoxxEngine(object):
         self.chords = ct.chords
         self.duration_texts = ct.duration_texts
 
-    def process(self, buf, aggro, tick_unit, truncate):
+    def make_partial(self, pitch_snap, tick_unit, truncate):
+        return VoxxPartial(self.bpm, self.chords, pitch_snap, tick_unit, truncate)
 
-        pitch = PitchDetector()
-
-        tick = 0
-        note_frame_count = int(round(Audio.sample_rate * 60.0 / self.bpm))
-        cur_pitch = None
-
-        cur_template = make_snap_template(self.chords[0])
-        chord_idx = 0
-        chord_tick = 0
-
-        raw_pitch_segments = []
-        processed_pitch_segments = []
-
-        last_pitch = 0
-        while True:
-            frame = frame_of_tick(self.bpm, tick)
-            end_frame = frame_of_tick(self.bpm, tick + tick_unit)
-            # print(frame, end_frame)
-            unknown_slice = buf.get_frames(frame, end_frame)
-            if not unknown_slice.size: break
-            mono_slice = unknown_slice[::buf.get_num_channels()]
-            segments = pitch_segments(pitch, mono_slice)
-            cur_pitch = majority_pitch(segments, cur_template, aggro, truncate)
-            if last_pitch and cur_pitch:
-                cur_pitch = push_near(last_pitch, cur_pitch, 10)
-            # print(cur_pitch)
-
-            raw_pitch_segments.extend(segments)
-            processed_pitch_segments.append((cur_pitch, mono_slice.size))
-
-            tick += tick_unit
-
-            chord_tick += tick_unit
-            if chord_tick >= self.chords[chord_idx].duration:
-                chord_idx = (chord_idx + 1) % len(self.chords)
-                cur_template = make_snap_template(self.chords[chord_idx])
-                chord_tick = 0
-
-        return raw_pitch_segments, processed_pitch_segments
+    def process(self, buf, pitch_snap, tick_unit, truncate):
+        partial = self.make_partial(pitch_snap, tick_unit, truncate)
+        partial.append(buf.data, buf.get_num_channels())
+        return partial.all_segments, partial.all_processed_segments
 
     def render(self, pitch_segments, note_instrument, layer_gain, chords_gain = None):
         synth = Synth('data/FluidR3_GM.sf2')
