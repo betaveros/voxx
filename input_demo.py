@@ -416,6 +416,8 @@ class Layer(object):
         self._segments_cache = None
         self._rendered_cache = None
 
+    def clear_cache(self): self._segments_cache = None
+
     @property
     def instrument(self): return self._instrument
     @instrument.setter
@@ -951,19 +953,23 @@ class MainMainWidget1(ScreenManager):
         key_mode = 'minor' if self.mode_group.pressed == self.button_minor else 'major'
 
         self.engine.bpm = bpm
+        self.tempo_map.bpm = bpm # !?!?
         self.engine.set_chord_template(chords_gen.chord_generater(chords, (key_root, key_mode), self.rhythm))
 
     def get_note_ticks(self):
         return (40, 60, 80, 120, 240)[int(round(self.layer_note_ticks_slider.value))]
 
-    def play_layers(self, layers):
+    def play_layers(self, layers, focus=None):
         self.layers_mixer = Mixer()
+        self.raw_segments_widget.display.set_segments([])
+        self.processed_segments_widget.display.set_segments([])
         for layer in layers:
             raw_pitches, processed_pitches = layer.process_with(self.engine)
             rendered_data = layer.render_with(self.engine)
 
-            # self.raw_segments_widget.display.set_segments(raw_pitches)
-            # self.processed_segments_widget.display.set_segments(processed_pitches)
+            if layer is focus:
+                self.raw_segments_widget.display.set_segments(raw_pitches)
+                self.processed_segments_widget.display.set_segments(processed_pitches)
             self.layers_mixer.add(WaveGenerator(WaveArray(rendered_data, 2)))
         self.mixer.add(self.layers_mixer)
 
@@ -1068,7 +1074,7 @@ class MainMainWidget1(ScreenManager):
                 cur_layer_has_data = self.cur_layer.data is not None
                 if cur_layer_is_extra and cur_layer_has_data:
                     layers = layers + [self.cur_layer]
-                self.play_layers(layers)
+                self.play_layers(layers, self.cur_layer)
 
             self.update_record_screen()
 
@@ -1146,7 +1152,7 @@ class MainMainWidget1(ScreenManager):
                 size_hint=(.05, 2), pos_hint={'x':.9, 'y':.58})
         self.raw_segments_widget = SegmentsDisplayWidget(
                 size_hint=(.5, .2), pos_hint={'x':.12, 'y':.58},
-                color= coral)
+                color= bright_blue)
         self.processed_segments_widget = SegmentsDisplayWidget(
                 size_hint=(.5, .2), pos_hint={'x':.12, 'y':.58},
                 color= coral) #it's still just red rn?
@@ -1172,6 +1178,9 @@ class MainMainWidget1(ScreenManager):
             else:
                 print('error! unrecognized mode: ' + repr(key_mode))
             self.rhythm = rhythm
+
+            for layer in self.layers:
+                layer.clear_cache()
 
             self.update_chord_template()
         return callback
