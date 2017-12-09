@@ -427,6 +427,7 @@ class MainMainWidget1(ScreenManager):
         self.recording = False
         self.input_buffers = []
         self.layers = []
+        self.cur_layer_index = None
         self.cur_layer = Layer(40, None, 100, 20, 80)
 
         self.channel_select = 0
@@ -760,16 +761,36 @@ class MainMainWidget1(ScreenManager):
 
         text = u'{} layer{}'.format(len(self.layers),
                 u'' if len(self.layers) == 1 else u's')
-        if self.recording:
-            text += u' + recording'
-        elif self.cur_layer.data is not None:
-            text += u' + 1'
+        if self.cur_layer_index is None:
+            if self.recording:
+                text += u' + recording'
+            elif self.cur_layer.data is not None:
+                text += u' + 1'
 
-        if self.playing:
-            text = u'Playing ' + text
+            if self.playing:
+                text = u'Playing ' + text
+        else:
+            text = u'{} of '.format(self.cur_layer_index + 1) + text
+            if self.recording:
+                text = u'Recording ' + text
+            elif self.playing:
+                text = u'Playing all: ' + text
         if self.playing or self.recording:
             text += u' ({})'.format(self.engine_playing_text) if self.engine_playing_text else ''
         self.record_label.text = text
+
+    def select_callback(self, i):
+        def f(instance):
+            if 0 <= i < len(self.layers):
+                self.cur_layer_index = i
+                self.cur_layer = self.layers[i]
+                self.update_record_screen()
+                self.current = 'record'
+        return f
+
+    def update_all_saved_layers(self):
+        for i, button in enumerate(self.select_buttons):
+            button.disabled = i >= len(self.layers)
 
     def make_tracks_screen(self):
         screen = ScreenWithBackground('tracks')
@@ -791,8 +812,10 @@ class MainMainWidget1(ScreenManager):
             self.track = make_button('',0.7,0.05,0.2,self.y_pos[i])
             self.tracks.append(self.track)
 
-            self.select_button = make_button ('select',0.05,0.05,0.13,self.y_pos[i],20, bg_color = light_teal)
-            self.select_buttons.append(self.select_button)
+            select_button = make_button ('select',0.05,0.05,0.13,self.y_pos[i],20, bg_color = light_teal)
+            select_button.bind(on_press=self.select_callback(i))
+
+            self.select_buttons.append(select_button)
 
             self.label = Label(text='Track  '+ str(i+1),
                 font_size = 40,
@@ -806,7 +829,7 @@ class MainMainWidget1(ScreenManager):
             screen.add_widget(self.track_labels[i])
 
 
-        self.play_button = make_button('Play', .1, .07, .33, .75, 50)
+        self.play_track_button = make_button('Play', .1, .07, .33, .75, 50)
         self.play_all_button = make_button('Play All', .2, .07, .48, .75, 50)
 
 
@@ -818,7 +841,7 @@ class MainMainWidget1(ScreenManager):
 
         screen.add_widget(label1)
         screen.add_widget(button_back)
-        screen.add_widget(self.play_button)
+        screen.add_widget(self.play_track_button)
         screen.add_widget(self.play_all_button)
         self.add_widget(screen)
 
@@ -948,19 +971,27 @@ class MainMainWidget1(ScreenManager):
             else:
                 self.playing = True
                 self.engine_stop = self.engine.play_lines(self.synth, self.sched, get_background_gain, engine_text_callback)
+                # play all saved layers plus the current layer
                 layers = self.layers
-                if self.cur_layer.data is not None: layers = layers + [self.cur_layer]
+                cur_layer_is_extra = self.cur_layer_index is None
+                cur_layer_has_data = self.cur_layer.data is not None
+                if cur_layer_is_extra and cur_layer_has_data:
+                    layers = layers + [self.cur_layer]
                 play_layers(layers)
 
             self.update_record_screen()
 
         def save(instance):
-            if self.cur_layer.data is not None:
-                self.layers.append(self.cur_layer)
-                self.cur_layer = Layer(self.instrument_input.int_value, None,
-                        self.layer_gain_slider.value,
-                        self.layer_pitch_snap_slider.value,
-                        self.get_note_ticks())
+            if self.cur_layer_index is None:
+                if self.cur_layer.data is not None:
+                    self.layers.append(self.cur_layer)
+                    self.update_all_saved_layers()
+
+            self.cur_layer_index = None
+            self.cur_layer = Layer(self.instrument_input.int_value, None,
+                    self.layer_gain_slider.value,
+                    self.layer_pitch_snap_slider.value,
+                    self.get_note_ticks())
 
             self.update_record_screen()
 
@@ -971,10 +1002,14 @@ class MainMainWidget1(ScreenManager):
                 stop_layers()
                 self.cur_layer.data = combine_buffers(self.input_buffers)
             else:
-                self.input_buffers = []
                 self.recording = True
+                self.input_buffers = []
                 self.engine_stop = self.engine.play_lines(self.synth, self.sched, get_background_gain, engine_text_callback)
-                play_layers(self.layers)
+                # play all layers except maybe the current one
+                layers = self.layers
+                if self.cur_layer_index is not None:
+                    layers = layers[:self.cur_layer_index] + layers[self.cur_layer_index + 1:]
+                play_layers(layers)
 
             self.update_record_screen()
 
