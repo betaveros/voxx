@@ -67,9 +67,9 @@ class WaveArray(object):
         return self.num_channels
 
 
-# this class is a generator. It does no actual buffering across more than one call. 
-# So underruns/overruns are likely, resulting in pops here and there. 
-# But code is simpler to deal with and it reduces latency. 
+# this class is a generator. It does no actual buffering across more than one call.
+# So underruns/overruns are likely, resulting in pops here and there.
+# But code is simpler to deal with and it reduces latency.
 # Otherwise, it would need a FIFO read-write buffer
 class IOBuffer(object):
     def __init__(self):
@@ -107,7 +107,7 @@ class IOBuffer(object):
         return tmp, True
 
 
-# looks at incoming audio data, detects onsets, and then a little later, classifies the onset as 
+# looks at incoming audio data, detects onsets, and then a little later, classifies the onset as
 # "kick" or "snare"
 # calls callback function with message argument that is one of "onset", "kick", ""
 class OnsetDectior(object):
@@ -164,7 +164,7 @@ class OnsetDectior(object):
 class MeterDisplay(InstructionGroup):
     def __init__(self, pos, height, in_range, color):
         super(MeterDisplay, self).__init__()
-        
+
         self.max_height = height
         self.range = in_range
 
@@ -205,7 +205,7 @@ class OnsetDisplay(InstructionGroup):
 
         self.add(PushMatrix())
         self.add(Translate(*pos))
-        self.add(self.color)        
+        self.add(self.color)
         self.add(self.circle)
         self.add(PopMatrix())
 
@@ -616,7 +616,7 @@ class MainMainWidget1(ScreenManager):
         self.key_input.bind(text=lambda instance, value: self.update_chord_template())
 
         self.chords_input = LineTextInput(
-                text = '1,4,5,1', 
+                text = '1,4,5,1',
                 size_hint=(.5, .1), pos_hint={'x':.4, 'y':.26})
         self.chords_input.bind(text=lambda instance, value: self.update_chord_template())
 
@@ -649,7 +649,7 @@ class MainMainWidget1(ScreenManager):
         screen.add_widget(button_back)
         screen.add_widget(button_next)
 
-        self.add_widget(screen)    
+        self.add_widget(screen)
 
     def make_rhythm_screen(self):
         screen = ScreenWithBackground('rhythm')
@@ -743,9 +743,9 @@ class MainMainWidget1(ScreenManager):
         screen.add_widget(label2)
         screen.add_widget(label3)
         screen.add_widget(self.instrument_input)
-        screen.add_widget(button_preview) 
-        screen.add_widget(button_done)               
-        screen.add_widget(button_cancel)      
+        screen.add_widget(button_preview)
+        screen.add_widget(button_done)
+        screen.add_widget(button_cancel)
 
 
         self.add_widget(screen)
@@ -771,7 +771,6 @@ class MainMainWidget1(ScreenManager):
             text += u' ({})'.format(self.engine_playing_text) if self.engine_playing_text else ''
         self.record_label.text = text
 
-    
     def make_tracks_screen(self):
         screen = ScreenWithBackground('tracks')
 
@@ -805,7 +804,7 @@ class MainMainWidget1(ScreenManager):
             screen.add_widget(self.tracks[i])
             screen.add_widget(self.select_buttons[i])
             screen.add_widget(self.track_labels[i])
-        
+
 
         self.play_button = make_button('Play', .1, .07, .33, .75, 50)
         self.play_all_button = make_button('Play All', .2, .07, .48, .75, 50)
@@ -820,7 +819,7 @@ class MainMainWidget1(ScreenManager):
         screen.add_widget(label1)
         screen.add_widget(button_back)
         screen.add_widget(self.play_button)
-        screen.add_widget(self.play_all_button)      
+        screen.add_widget(self.play_all_button)
         self.add_widget(screen)
 
     def update_chord_template(self):
@@ -847,9 +846,9 @@ class MainMainWidget1(ScreenManager):
                 size_hint=(.3, .1), pos_hint={'x':.35, 'y':.85},
                 font_name = 'fonts/AmaticSC-Bold.ttf',
                 color=(0, 0.5, 0.6, 1))
-        
+
         self.play_button = make_button('Play', .2, .1, .1, .85, 80)
-        
+
         self.record_button = make_button('Record', .2, .1, .7, .85, 80)
 
         button_instrument = make_button('   Change\nInstrument', .18, .1, .5, .35, 40)
@@ -858,14 +857,14 @@ class MainMainWidget1(ScreenManager):
         button_background = make_button('   Change\nProgression', .18, .1, .7, .35, 40)
         button_background.bind(on_press=self.go_to_callback('mood1'))
 
-       	self.new_button = make_button('New Track', .18, .1, .5, .23, 45)
+        self.new_button = make_button('New Track', .18, .1, .5, .23, 45)
 
-       	button_all_tracks = make_button('All Tracks', .18, .1, .7, .23, 45)
+        button_all_tracks = make_button('All Tracks', .18, .1, .7, .23, 45)
         button_all_tracks.bind(on_press=self.go_to_callback('tracks'))
-        
+
         self.delete_button = make_button('Delete Track', .18, .1, .5, .11, 45)
-        
-        self.save_button = make_button('Save', .18, .1, .7, .11, 60, bg_color = darker_teal)       
+
+        self.save_button = make_button('Save', .18, .1, .7, .11, 60, bg_color = darker_teal)
 
         button_cancel = make_bg_button('Cancel',.08, .09, .85, .02, 40)
         button_cancel.bind(on_press=self.go_to_callback('start'))
@@ -984,18 +983,18 @@ class MainMainWidget1(ScreenManager):
         self.record_button.bind(on_press=record)
 
         #Make the chord bars below recording graph that shows which background chord you're on
-    	self.nProgression = 4 #This needs to be passed on the total number of chords in the current progression
-    	self.x_pos = []
+        self.nProgression = 4 #This needs to be passed on the total number of chords in the current progression
+        self.x_pos = []
         self.chord_bars =[]
         x_start = 0.12
         x_end = 0.88
-    	
-    	for i in range (self.nProgression):
-    		bar_length= (x_end - x_start)/self.nProgression
-    		self.x_pos.append(x_start + i * bar_length)
-    		self.chord_bar = make_button('',bar_length, .05, self.x_pos[i], 0.5)
-    		self.chord_bars.append(self.chord_bar)
-    		screen.add_widget(self.chord_bars[i])
+
+        for i in range (self.nProgression):
+            bar_length = (x_end - x_start)/self.nProgression
+            self.x_pos.append(x_start + i * bar_length)
+            self.chord_bar = make_button('',bar_length, .05, self.x_pos[i], 0.5)
+            self.chord_bars.append(self.chord_bar)
+            screen.add_widget(self.chord_bars[i])
 
 
 
@@ -1006,7 +1005,7 @@ class MainMainWidget1(ScreenManager):
         screen.add_widget(self.delete_button)
         screen.add_widget(self.new_button)
         screen.add_widget(button_cancel)
-        screen.add_widget(button_all_tracks)     
+        screen.add_widget(button_all_tracks)
         screen.add_widget(button_instrument)
         screen.add_widget(button_background)
         screen.add_widget(self.background_gain_slider)
@@ -1016,7 +1015,7 @@ class MainMainWidget1(ScreenManager):
         screen.add_widget(label_background_gain)
         screen.add_widget(label_layer_gain)
         screen.add_widget(label_pitch_snap)
-        screen.add_widget(label_rhythm_snap)       
+        screen.add_widget(label_rhythm_snap)
 
         self.graph_widget = GraphDisplayWidget(
                 size_hint=(.5, 2), pos_hint={'x':.12, 'y':.58})
