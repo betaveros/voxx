@@ -268,7 +268,7 @@ class GraphDisplayWidget(BaseWidget):
     def __init__(self, **kwargs):
         super(GraphDisplayWidget, self).__init__(**kwargs)
 
-        self.graph = GraphDisplay(self.pos, 300, 300, (30, 90), (.9,.1,.3))
+        self.graph = GraphDisplay(self.pos, 300, 30, (30, 90), (.9,.1,.3))
         self.canvas.add(self.graph)
 
         self.bind(pos=self.redraw)
@@ -1053,7 +1053,7 @@ class MainMainWidget1(ScreenManager):
         screen.add_widget(label_rhythm_snap)
 
         self.graph_widget = GraphDisplayWidget(
-                size_hint=(.5, 2), pos_hint={'x':.12, 'y':.58})
+                size_hint=(.05, 2), pos_hint={'x':.9, 'y':.58})
         self.raw_segments_widget = SegmentsDisplayWidget(
                 size_hint=(.5, .2), pos_hint={'x':.12, 'y':.58},
                 color= coral)
