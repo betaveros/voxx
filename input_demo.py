@@ -933,7 +933,7 @@ class MainMainWidget1(ScreenManager):
                 data_array = WaveArray(layer.data, 2)
                 instrument = layer.instrument
                 processed_data, raw_pitches, processed_pitches = self.engine.process(
-                        data_array, instrument, layer.gain, layer.pitch_snap, layer.note_ticks)
+                        data_array, instrument, layer.gain, layer.pitch_snap, layer.note_ticks, 100)
 
                 self.raw_segments_widget.display.set_segments(raw_pitches)
                 self.processed_segments_widget.display.set_segments(processed_pitches)

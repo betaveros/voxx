@@ -57,10 +57,13 @@ def pitch_segments(pitch_detector, mono_frame_array):
         ret.append((pitch, cur_slice.size))
     return ret
 
-def majority_pitch(pitch_segments, template, aggro):
+def majority_pitch(pitch_segments, template, aggro, truncate):
     note_votes = Counter()
     for pitch, weight in pitch_segments:
-        cur_note = snap_to_template(pitch, template, aggro)
+        if pitch > truncate:
+            cur_note = 0
+        else:
+            cur_note = snap_to_template(pitch, template, aggro)
         note_votes[cur_note] += weight
     return max(note_votes.items(), key=lambda x: x[1])[0]
 
@@ -107,7 +110,7 @@ class VoxxEngine(object):
         self.chords = ct.chords
         self.duration_texts = ct.duration_texts
 
-    def process(self, buf, note_instrument, layer_gain, aggro, tick_unit, chords_gain = None):
+    def process(self, buf, note_instrument, layer_gain, aggro, tick_unit, truncate, chords_gain = None):
 
         pitch = PitchDetector()
         synth = Synth('data/FluidR3_GM.sf2')
@@ -142,7 +145,7 @@ class VoxxEngine(object):
             if not unknown_slice.size: break
             mono_slice = unknown_slice[::buf.get_num_channels()]
             segments = pitch_segments(pitch, mono_slice)
-            cur_pitch = majority_pitch(segments, cur_template, aggro)
+            cur_pitch = majority_pitch(segments, cur_template, aggro, truncate)
             if last_pitch and cur_pitch:
                 cur_pitch = push_near(last_pitch, cur_pitch, 10)
             # print(cur_pitch)
