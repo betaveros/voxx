@@ -16,6 +16,7 @@ from common.clock import *
 from common.metro import *
 from common.noteseq import *
 import random
+import demo_chords
 MYPY = False
 if MYPY: from typing import List, Tuple
 
@@ -63,6 +64,10 @@ class ChordTemplate(object):
 
 def chord_generater(chord_degs, key, rhythm):
 	# type: (List[int], Tuple[str, str], int) -> ChordTemplate
+
+	if chord_degs == [1,2,7,6] and key == ('F', 'major') and rhythm == 960:
+		return demo_chords.demo
+
 	key_root, key_mode = key
 	starting_note = pitch_dic[key_root]
 	if key_mode == 'major':

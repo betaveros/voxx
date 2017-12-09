@@ -552,7 +552,7 @@ class MainMainWidget1(ScreenManager):
         add_mood_button('Happy', .15, .15, .08, .4, [6, 4, 1, 5], ['C', 'major'], 240)
         add_mood_button('Sad'  , .15, .15, .31, .4, [1, 7, 5, 4], ['C', 'minor'], 1920)
         add_mood_button('Epic' , .15, .15, .54, .4, [4, 1, 6, 5], ['D', 'major'], 480)
-        add_mood_button('Chill', .15, .15, .77, .4, [1, 7, 6, 5], ['F', 'minor'], 960)
+        add_mood_button('Chill', .15, .15, .77, .4, [1, 2, 7, 6], ['F', 'major'], 960)
 
         button_back = make_bg_button('Back', .1, .15, .01, .02)
         button_next = make_bg_button('Next', .1, .15, .89, .02)
@@ -1096,7 +1096,7 @@ class MainMainWidget1(ScreenManager):
         def new_layer(instance):
             self.cur_layer_index = None
             self.cur_layer = Layer(self.instrument_input.int_value, None,
-                    self.layer_gain_slider.value,
+                    int(round(self.layer_gain_slider.value)),
                     self.layer_pitch_snap_slider.value,
                     self.get_note_ticks())
             self.update_all_saved_layers()
@@ -1108,7 +1108,7 @@ class MainMainWidget1(ScreenManager):
 
             self.cur_layer_index = None
             self.cur_layer = Layer(self.instrument_input.int_value, None,
-                    self.layer_gain_slider.value,
+                    int(round(self.layer_gain_slider.value)),
                     self.layer_pitch_snap_slider.value,
                     self.get_note_ticks())
             self.update_all_saved_layers()

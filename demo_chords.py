@@ -1,4 +1,4 @@
-from chords_gen import Chord, DurationText
+from chords_gen import Chord, DurationText, ChordTemplate
 
 baseline = [[240,41],[240,41],[240,0],[720,41],[480,41],[240,43],[240,43],[240,0],[720,43],[480,43],[240,40],[240,40],[240,0],[720,40],[480,40],[240,45],[240,45],[240,0],[720,45],[480,45]]
 guitar2 = [[240,0],[480,60],[720,60],[480,0],[240,0],[480,62],[720,62],[480,0],[240,0],[480,59],[720,59],[480,0],[240,0],[480,64],[720,60],[480,0]]
@@ -11,6 +11,6 @@ which = [
         Chord(1920, { 45: 2, 59: 2, 60: 2, 64: 2, 58: 1, 60: 1, 62: 1, 64: 1, 65: 1, 67: 1, 69: 1, 70: 1, 72: 1, 74: 1, 76: 1, 77: 1}),
 ]
 
-texts = [DurationText(1920, 'TODO'), DurationText(1920, 'TODO'), DurationText(1920, 'TODO'), DurationText(1920, 'TODO')]
+texts = [DurationText(1920, 'F'), DurationText(1920, 'G'), DurationText(1920, 'Em'), DurationText(1920, 'Am')]
 
-demo = [baseline, guitar2, guitar3, which, texts]
+demo = ChordTemplate([baseline, guitar2, guitar3], which, texts)
