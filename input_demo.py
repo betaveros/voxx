@@ -753,10 +753,12 @@ class MainMainWidget1(ScreenManager):
                 text = '40', #Violin
                 size_hint=(.18, .15), pos_hint={'x':.15, 'y':.5})
 
+
+        instr_group = CoralButtonGroup()
         def add_instrument_button(num, name, sx, sy, px, py):
             def cb(instance):
                 self.instrument_input.text = str(num)
-            button = make_button(name, sx, sy, px, py)
+            button = instr_group.make_button(name, sx, sy, px, py)
             button.bind(on_press=cb)
             screen.add_widget(button)
 
