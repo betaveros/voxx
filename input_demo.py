@@ -374,8 +374,8 @@ black = (0.317, 0.321, 0.317,1)
 bright_blue = (0.160, 0.850, 1,1)
 
 
-def make_button(text, size_hint_x, size_hint_y, pos_hint_x, pos_hint_y, font_size=50, color=light_pink, bg_color=dark_teal):
-    return Button(text=text, font_size=font_size, color=color, size_hint=(size_hint_x, size_hint_y), pos_hint={'x': pos_hint_x, 'y': pos_hint_y}, background_normal='', background_color=bg_color)
+def make_button(text, size_hint_x, size_hint_y, pos_hint_x, pos_hint_y, font_size=50, color=light_pink, bg_color=dark_teal, font_name = 'fonts/AmaticSC-Regular.ttf'):
+    return Button(text=text, font_size=font_size, color=color, size_hint=(size_hint_x, size_hint_y), pos_hint={'x': pos_hint_x, 'y': pos_hint_y}, background_normal='', background_color=bg_color, font_name = font_name)
 
 class CoralButtonGroup(object):
     def __init__(self):
@@ -395,7 +395,7 @@ class CoralButtonGroup(object):
         self.pressed.background_color = dark_teal
         self.pressed = None
 
-    def make_button(self, text, size_hint_x, size_hint_y, pos_hint_x, pos_hint_y, font_size=50, callback=None):
+    def make_button(self, text, size_hint_x, size_hint_y, pos_hint_x, pos_hint_y, font_size=90, callback=None):
         button = make_button(text, size_hint_x, size_hint_y, pos_hint_x, pos_hint_y, font_size)
         def cur_press(instance):
             if callback is not None: callback(instance)
@@ -403,7 +403,7 @@ class CoralButtonGroup(object):
         button.bind(on_press=cur_press)
         return button
 
-def make_bg_button(text, size_hint_x, size_hint_y, pos_hint_x, pos_hint_y, font_size=50):
+def make_bg_button(text, size_hint_x, size_hint_y, pos_hint_x, pos_hint_y, font_size=80):
     return make_button(text, size_hint_x, size_hint_y, pos_hint_x, pos_hint_y, font_size, color=black, bg_color=background)
 
 class Layer(object):
@@ -478,7 +478,7 @@ class MainMainWidget1(ScreenManager):
         self.make_start_screen()
 
         self.make_mood_screen_1()
-        self.make_progression_screen()
+        #self.make_progression_screen()
 
         self.make_input_screen()
         self.make_rhythm_screen()
@@ -520,10 +520,10 @@ class MainMainWidget1(ScreenManager):
                 color=dark_teal)
 
         g = CoralButtonGroup()
-        button1 = g.make_button('Templates',  .25, .15, .2 , .25, 50, self.go_to_callback('mood1'))
-        button2 = g.make_button('Advanced', .25, .15, .55, .25, 50, self.go_to_callback('input'))
+        button1 = g.make_button('Templates',  .25, .15, .2 , .25, 100, self.go_to_callback('mood1'))
+        button2 = g.make_button('Advanced', .25, .15, .55, .25, 100, self.go_to_callback('input'))
 
-        button3 = make_bg_button('Skip Background Track', .25, .15, .7, .04, 40)
+        button3 = make_bg_button('Skip Background Track', .25, .15, .7, .04, 70)
         button3.bind(on_press=self.go_to_callback('record'))
 
         screen.add_widget(label1)
@@ -558,7 +558,7 @@ class MainMainWidget1(ScreenManager):
         button_next = make_bg_button('Next', .1, .15, .89, .02)
         button_advanced = make_bg_button('Advanced', .2, .15, .4, .02)
 
-        button_next.bind(on_press=self.go_to_callback('length'))
+        button_next.bind(on_press=self.go_to_callback('instrument'))
         button_back.bind(on_press=self.go_to_callback('start'))
         button_advanced.bind(on_press=self.go_to_callback('input'))
 
@@ -568,44 +568,44 @@ class MainMainWidget1(ScreenManager):
         screen.add_widget(button_advanced)
         self.add_widget(screen)
 
-    def make_progression_screen(self):
-        screen = ScreenWithBackground('length')
-        label1 = Label(text='Almost done!',
-                font_size = 150,
-                size_hint=(.5, .3), pos_hint={'x':.25, 'y':.7},
-                font_name = 'fonts/AmaticSC-Bold.ttf',
-                color=dark_teal)
+    # def make_progression_screen(self):
+    #     screen = ScreenWithBackground('length')
+    #     label1 = Label(text='Almost done!',
+    #             font_size = 150,
+    #             size_hint=(.5, .3), pos_hint={'x':.25, 'y':.7},
+    #             font_name = 'fonts/AmaticSC-Bold.ttf',
+    #             color=dark_teal)
 
-        label2 = Label(text='Set length of the background loop',
-                font_size = 100,
-                size_hint=(.5, .3), pos_hint={'x':.25, 'y':.5},
-                font_name = 'fonts/AmaticSC-Regular.ttf',
-                color=dark_teal)
+    #     label2 = Label(text='Set length of the background loop',
+    #             font_size = 100,
+    #             size_hint=(.5, .3), pos_hint={'x':.25, 'y':.5},
+    #             font_name = 'fonts/AmaticSC-Regular.ttf',
+    #             color=dark_teal)
 
-        self.measure_group = CoralButtonGroup()
-        self.button_short = self.measure_group.make_button('Short\n (4 measures)',  .2, .15, .1, .3)
-        self.button_mid   = self.measure_group.make_button('Medium\n (6 measures)', .2, .15, .4, .3)
-        self.button_long  = self.measure_group.make_button('Long\n (8 measures)',   .2, .15, .7, .3)
+    #     self.measure_group = CoralButtonGroup()
+    #     self.button_short = self.measure_group.make_button('Short\n (4 measures)',  .2, .15, .1, .3)
+    #     self.button_mid   = self.measure_group.make_button('Medium\n (6 measures)', .2, .15, .4, .3)
+    #     self.button_long  = self.measure_group.make_button('Long\n (8 measures)',   .2, .15, .7, .3)
 
-        button_back = make_bg_button('Back', .1, .15, .01, .02)
-        button_next = make_bg_button('Next', .1, .15, .89, .02)
-        button_advanced = make_bg_button('Advanced', .2, .15, .4, .02)
-
-
-        button_next.bind(on_press=self.go_to_callback('instrument'))
-        button_back.bind(on_press=self.go_to_callback('mood1'))
-        button_advanced.bind(on_press=self.go_to_callback('input'))
+    #     button_back = make_bg_button('Back', .1, .15, .01, .02)
+    #     button_next = make_bg_button('Next', .1, .15, .89, .02)
+    #     button_advanced = make_bg_button('Advanced', .2, .15, .4, .02)
 
 
-        screen.add_widget(label1)
-        screen.add_widget(label2)
-        screen.add_widget(self.button_short)
-        screen.add_widget(self.button_mid)
-        screen.add_widget(self.button_long)
-        screen.add_widget(button_back)
-        screen.add_widget(button_next)
-        screen.add_widget(button_advanced)
-        self.add_widget(screen)
+    #     button_next.bind(on_press=self.go_to_callback('instrument'))
+    #     button_back.bind(on_press=self.go_to_callback('mood1'))
+    #     button_advanced.bind(on_press=self.go_to_callback('input'))
+
+
+    #     screen.add_widget(label1)
+    #     screen.add_widget(label2)
+    #     screen.add_widget(self.button_short)
+    #     screen.add_widget(self.button_mid)
+    #     screen.add_widget(self.button_long)
+    #     screen.add_widget(button_back)
+    #     screen.add_widget(button_next)
+    #     screen.add_widget(button_advanced)
+    #     self.add_widget(screen)
 
     def finish_set_instrument(self, instance):
         self.cur_layer.instrument = self.instrument_input.int_value
@@ -671,11 +671,11 @@ class MainMainWidget1(ScreenManager):
         button_next = make_bg_button('Next', .1, .15, .89, .02)
 
         button_next.bind(on_press=self.go_to_callback('rhythm'))
-        button_back.bind(on_press=self.go_to_callback('start'))
+        button_back.bind(on_press=self.go_to_callback('mood1'))
 
         self.mode_group = CoralButtonGroup()
-        self.button_major = self.mode_group.make_button('Major', .13, .1, .62, .38)
-        self.button_minor = self.mode_group.make_button('Minor', .13, .1, .78, .38)
+        self.button_major = self.mode_group.make_button('Major', .13, .1, .62, .38, 70)
+        self.button_minor = self.mode_group.make_button('Minor', .13, .1, .78, .38, 70)
 
         # button_major.bind(on_press=self.measure_callback(self.button_major))
         # button_minor.bind(on_press=self.measure_callback(button_minor))
@@ -767,7 +767,7 @@ class MainMainWidget1(ScreenManager):
         def add_instrument_button(num, name, sx, sy, px, py):
             def cb(instance):
                 self.instrument_input.text = str(num)
-            button = instr_group.make_button(name, sx, sy, px, py)
+            button = instr_group.make_button(name, sx, sy, px, py,75)
             button.bind(on_press=cb)
             screen.add_widget(button)
 
@@ -778,8 +778,8 @@ class MainMainWidget1(ScreenManager):
         add_instrument_button(32, 'Bass'     , .18, .15, .5, .14)
         add_instrument_button(65, 'Saxophone', .18, .15, .7, .14)
 
-        button_preview = make_button('Preview', .18, .15, .08, .14, bg_color = darker_teal)
-        button_done    = make_button('Done', .18, .15, .28, .14, bg_color = darker_teal)
+        button_preview = make_button('Preview', .18, .15, .08, .14, 90, bg_color = darker_teal)
+        button_done    = make_button('Done', .18, .15, .28, .14, 90, bg_color = darker_teal)
         button_done.bind(on_press=self.finish_set_instrument)
 
 
@@ -927,9 +927,9 @@ class MainMainWidget1(ScreenManager):
 
             self.update_record_screen()
 
-        self.play_selected_button = make_button('Play', .1, .07, .33, .75, 50)
+        self.play_selected_button = make_button('Play', .1, .07, .33, .75, 60)
         self.play_selected_button.bind(on_press=play_selected)
-        self.play_all_button = make_button('Play All', .2, .07, .48, .75, 50)
+        self.play_all_button = make_button('Play All', .2, .07, .48, .75, 60)
         self.play_all_button.bind(on_press=play_all)
 
         button_back = make_bg_button('Back', .1, .15, .01, .85)
@@ -995,26 +995,26 @@ class MainMainWidget1(ScreenManager):
                 font_name = 'fonts/AmaticSC-Bold.ttf',
                 color=(0, 0.5, 0.6, 1))
 
-        self.play_button = make_button('Play', .2, .1, .1, .85, 80)
+        self.play_button = make_button('Play', .2, .1, .1, .85, 90)
 
-        self.record_button = make_button('Record', .2, .1, .7, .85, 80)
+        self.record_button = make_button('Record', .2, .1, .7, .85, 90)
 
-        self.button_instrument = make_button('   Change\nInstrument', .18, .1, .5, .35, 40)
+        self.button_instrument = make_button('   Change\nInstrument', .18, .1, .5, .35, 45)
         self.button_instrument.bind(on_press=self.go_to_callback('instrument'))
 
-        self.button_background = make_button('   Change\nProgression', .18, .1, .7, .35, 40)
+        self.button_background = make_button('   Change\nProgression', .18, .1, .7, .35, 45)
         self.button_background.bind(on_press=self.go_to_callback('mood1'))
 
-        self.new_button = make_button('New Track', .18, .1, .5, .23, 45)
+        self.new_button = make_button('New Track', .18, .1, .5, .23, 65)
 
-        self.button_all_tracks = make_button('All Tracks', .18, .1, .7, .23, 45)
+        self.button_all_tracks = make_button('All Tracks', .18, .1, .7, .23, 65)
         self.button_all_tracks.bind(on_press=self.go_to_callback('tracks'))
 
-        self.delete_button = make_button('Delete Track', .18, .1, .5, .11, 45)
+        self.delete_button = make_button('Delete Track', .18, .1, .5, .11, 65)
 
-        self.save_button = make_button('Save', .18, .1, .7, .11, 60, bg_color = darker_teal)
+        self.save_button = make_button('Save', .18, .1, .7, .11, 80, bg_color = darker_teal)
 
-        button_cancel = make_bg_button('Cancel',.08, .09, .85, .02, 40)
+        button_cancel = make_bg_button('Cancel',.08, .09, .85, .02, 60)
         button_cancel.bind(on_press=self.go_to_callback('start'))
 
         self.background_gain_slider = Slider(
