@@ -412,31 +412,41 @@ class Layer(object):
         self._gain = gain
         self._pitch_snap = pitch_snap
         self._note_ticks = note_ticks
-        self._cache = None
+        self._segments_cache = None
+        self._rendered_cache = None
 
+    @property
+    def instrument(self): return self._instrument
+    @instrument.setter
+    def instrument(self, i): self._instrument = i; self._rendered_cache = None
     @property
     def data(self): return self._data
     @data.setter
-    def data(self, d): self._data = d; self._cache = None
+    def data(self, d): self._data = d; self._segments_cache = None
     @property
     def gain(self): return self._gain
     @gain.setter
-    def gain(self, g): self._gain = g; self._cache = None
+    def gain(self, g): self._gain = g; self._rendered_cache = None
     @property
     def pitch_snap(self): return self._pitch_snap
     @pitch_snap.setter
-    def pitch_snap(self, p): self._pitch_snap = p; self._cache = None
+    def pitch_snap(self, p): self._pitch_snap = p; self._segments_cache = None
     @property
     def note_ticks(self): return self._note_ticks
     @note_ticks.setter
-    def note_ticks(self, n): self._note_ticks = n; self._cache = None
+    def note_ticks(self, n): self._note_ticks = n; self._segments_cache = None
 
     def process_with(self, engine):
-        if not self._cache:
+        if self._segments_cache is None:
             data_array = WaveArray(self.data, 2)
-            self._cache = engine.process(
-                data_array, self.instrument, self.gain, self.pitch_snap, self.note_ticks, 100)
-        return self._cache
+            self._segments_cache = engine.process(data_array, self.pitch_snap, self.note_ticks, 100)
+            self._rendered_cache = None
+        return self._segments_cache
+    def render_with(self, engine):
+        raw, proc = self.process_with(engine)
+        if self._rendered_cache is None:
+            self._rendered_cache = engine.render(proc, self.instrument, self.gain)
+        return self._rendered_cache
 
 class MainMainWidget1(ScreenManager):
 
@@ -978,12 +988,12 @@ class MainMainWidget1(ScreenManager):
         def play_layers(layers):
             self.layers_mixer = Mixer()
             for layer in layers:
-                instrument = layer.instrument
-                processed_data, raw_pitches, processed_pitches = layer.process_with(self.engine)
+                raw_pitches, processed_pitches = layer.process_with(self.engine)
+                rendered_data = layer.render_with(self.engine)
 
                 self.raw_segments_widget.display.set_segments(raw_pitches)
                 self.processed_segments_widget.display.set_segments(processed_pitches)
-                self.layers_mixer.add(WaveGenerator(WaveArray(processed_data, 2)))
+                self.layers_mixer.add(WaveGenerator(WaveArray(rendered_data, 2)))
             self.mixer.add(self.layers_mixer)
 
         def play(instance):
