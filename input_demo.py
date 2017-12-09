@@ -407,11 +407,36 @@ def make_bg_button(text, size_hint_x, size_hint_y, pos_hint_x, pos_hint_y, font_
 
 class Layer(object):
     def __init__(self, instrument, data, gain, pitch_snap, note_ticks):
-        self.instrument = instrument
-        self.data = data
-        self.gain = gain
-        self.pitch_snap = pitch_snap
-        self.note_ticks = note_ticks
+        self._instrument = instrument
+        self._data = data
+        self._gain = gain
+        self._pitch_snap = pitch_snap
+        self._note_ticks = note_ticks
+        self._cache = None
+
+    @property
+    def data(self): return self._data
+    @data.setter
+    def data(self, d): self._data = d; self._cache = None
+    @property
+    def gain(self): return self._gain
+    @gain.setter
+    def gain(self, g): self._gain = g; self._cache = None
+    @property
+    def pitch_snap(self): return self._pitch_snap
+    @pitch_snap.setter
+    def pitch_snap(self, p): self._pitch_snap = p; self._cache = None
+    @property
+    def note_ticks(self): return self._note_ticks
+    @note_ticks.setter
+    def note_ticks(self, n): self._note_ticks = n; self._cache = None
+
+    def process_with(self, engine):
+        if not self._cache:
+            data_array = WaveArray(self.data, 2)
+            self._cache = engine.process(
+                data_array, self.instrument, self.gain, self.pitch_snap, self.note_ticks, 100)
+        return self._cache
 
 class MainMainWidget1(ScreenManager):
 
@@ -953,10 +978,8 @@ class MainMainWidget1(ScreenManager):
         def play_layers(layers):
             self.layers_mixer = Mixer()
             for layer in layers:
-                data_array = WaveArray(layer.data, 2)
                 instrument = layer.instrument
-                processed_data, raw_pitches, processed_pitches = self.engine.process(
-                        data_array, instrument, layer.gain, layer.pitch_snap, layer.note_ticks, 100)
+                processed_data, raw_pitches, processed_pitches = layer.process_with(self.engine)
 
                 self.raw_segments_widget.display.set_segments(raw_pitches)
                 self.processed_segments_widget.display.set_segments(processed_pitches)
