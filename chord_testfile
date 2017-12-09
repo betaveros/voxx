@@ -6,6 +6,4 @@ guitar3 = [[240,0],[480,57],[720,57],[480,0],[240,0],[480,59],[720,59],[480,0],[
 chord = [guitar1, guitar2, guitar3]
 
 #the possible notes for the whole progression:
-
-#we could make these notes in different 
 possible_notes = [58, 60, 62, 64, 65, 67, 69, 70, 72, 74, 76, 77]
