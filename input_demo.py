@@ -798,7 +798,7 @@ class MainMainWidget1(ScreenManager):
         self.add_widget(screen)
 
     def engine_text_callback(self, i, text):
-        self.engine_playing_text = "[{}] {}".format(str(i), text)
+        self.engine_playing_text = u"[{}] {}".format(str(i), text)
         self.update_record_screen()
 
     def update_record_screen(self):
@@ -832,7 +832,7 @@ class MainMainWidget1(ScreenManager):
             elif self.status == PLAYING:
                 text = u'Playing all: ' + text
         if self.status in [PLAYING, RECORDING]:
-            text += u' ({})'.format(self.engine_playing_text) if self.engine_playing_text else ''
+            text += u' ({})'.format(self.engine_playing_text) if self.engine_playing_text else u''
         self.record_label.text = text
 
     def track_callback(self, i):
