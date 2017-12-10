@@ -142,6 +142,26 @@ class VoxxPartial(object):
                 assert self.unflushed_segments_size == self.current_chunk_frames()
                 self.flush_chunk()
 
+class VoxxPlayStatus(object):
+    def __init__(self, scheduler):
+        self.scheduler = scheduler
+        self.start_frame = scheduler.cur_frame
+        self.stop_frame = None
+        self.stop_flag = False
+
+    def get_frame(self):
+        if self.stop_frame is not None: return self.stop_frame
+        return self.scheduler.cur_frame - self.start_frame
+
+    def stop(self):
+        self.stop_frame = self.get_frame()
+        self.stop_flag = True
+
+    def __str__(self):
+        if self.stop_flag:
+            return 'Stopped'
+        return 'Playing ' + str(self.get_frame())
+
 class VoxxEngine(object):
     def __init__(self):
         if False:
@@ -156,11 +176,11 @@ class VoxxEngine(object):
 
     def play_lines(self, synth, scheduler, gain_callback, text_callback):
 
-        stopper = [False]
+        play_status = VoxxPlayStatus(scheduler)
 
         def next_note_play(tick, (melody, i)):
             synth.noteoff(CHORD_CHANNEL, melody[(i - 1)%len(melody)][1])
-            if stopper[0]: return
+            if play_status.stop_flag: return
             synth.noteon(CHORD_CHANNEL, melody[i][1], gain_callback())
             scheduler.post_at_tick(tick + melody[i][0], next_note_play, (melody, (i + 1) % (len(melody))))
 
@@ -168,16 +188,14 @@ class VoxxEngine(object):
             next_note_play(scheduler.get_tick(), (line, 0))
 
         def next_text(tick, i):
-            if stopper[0]: return
+            if play_status.stop_flag: return
             dt = self.duration_texts[i]
             text_callback(i, dt.text)
             scheduler.post_at_tick(tick + dt.duration, next_text, (i + 1) % (len(self.duration_texts)))
 
         next_text(scheduler.get_tick(), 0)
 
-        def stop_callback():
-            stopper[0] = True
-        return stop_callback
+        return play_status
 
     def set_chord_template(self, ct):
         # type: (ChordTemplate) -> None

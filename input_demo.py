@@ -287,10 +287,13 @@ class SegmentsDisplay(InstructionGroup):
 
         self.translate = Translate(*pos)
         self.line = Line( width = 1.5 )
+        self.now_bar = Line( width = 1.5 )
         self.add(PushMatrix())
         self.add(self.translate)
         self.add(Color(*color))
         self.add(self.line)
+        self.add(Color(1, 1, 1))
+        self.add(self.now_bar)
         self.add(PopMatrix())
 
         self.set_segments(segments)
@@ -309,6 +312,10 @@ class SegmentsDisplay(InstructionGroup):
             points[j+3] = y
 
         self.line.points = points
+
+    def set_now(self, now):
+        x = self.x_scale * now
+        self.now_bar.points = [x, 0, x, self.height]
 
     def set_pos(self, pos):
         self.translate.xy = pos
@@ -489,6 +496,7 @@ class MainMainWidget1(ScreenManager):
         self.make_instrument_screen()
 
         self.engine = VoxxEngine()
+        self.engine_status = None
 
         self.mixer = Mixer()
         self.synth = Synth('data/FluidR3_GM.sf2')
@@ -915,7 +923,7 @@ class MainMainWidget1(ScreenManager):
                 self.stop()
             else:
                 self.status = PLAYING_SELECTED
-                self.engine_stop = self.engine.play_lines(self.synth, self.sched, self.get_background_gain, self.engine_text_callback)
+                self.engine_status = self.engine.play_lines(self.synth, self.sched, self.get_background_gain, self.engine_text_callback)
                 # play all saved layers plus the current layer
                 selected_layers = []
                 for i, layer in enumerate(self.layers):
@@ -930,7 +938,7 @@ class MainMainWidget1(ScreenManager):
                 self.stop()
             else:
                 self.status = PLAYING_ALL
-                self.engine_stop = self.engine.play_lines(self.synth, self.sched, self.get_background_gain, self.engine_text_callback)
+                self.engine_status = self.engine.play_lines(self.synth, self.sched, self.get_background_gain, self.engine_text_callback)
                 self.play_layers(self.layers)
 
             self.update_record_screen()
@@ -992,7 +1000,7 @@ class MainMainWidget1(ScreenManager):
 
     def stop(self):
         self.status = None
-        self.engine_stop()
+        self.engine_status.stop()
         self.mixer.remove(self.layers_mixer)
         del self.layers_mixer
         for bar in self.chord_bars: bar.background_color = dark_teal
@@ -1083,7 +1091,7 @@ class MainMainWidget1(ScreenManager):
                 self.stop()
             else:
                 self.status = PLAYING
-                self.engine_stop = self.engine.play_lines(self.synth, self.sched, self.get_background_gain, self.engine_text_callback)
+                self.engine_status = self.engine.play_lines(self.synth, self.sched, self.get_background_gain, self.engine_text_callback)
                 # play all saved layers plus the current layer
                 layers = self.layers
                 cur_layer_is_extra = self.cur_layer_index is None
@@ -1131,7 +1139,7 @@ class MainMainWidget1(ScreenManager):
             else:
                 self.status = RECORDING
                 self.partial = self.engine.make_partial(self.cur_layer.pitch_snap, self.cur_layer.note_ticks, 100)
-                self.engine_stop = self.engine.play_lines(self.synth, self.sched, self.get_background_gain, self.engine_text_callback)
+                self.engine_status = self.engine.play_lines(self.synth, self.sched, self.get_background_gain, self.engine_text_callback)
                 # play all layers except maybe the current one
                 layers = self.layers
                 if self.cur_layer_index is not None:
@@ -1236,6 +1244,8 @@ class MainMainWidget1(ScreenManager):
 
     def on_update(self, dt):
         self.audio.on_update()
+        self.processed_segments_widget.display.set_now(self.engine_status.get_frame() if self.engine_status else 0)
+
     def on_key_down(self, keycode, modifiers):
         pass
 
