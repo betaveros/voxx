@@ -49,6 +49,16 @@ NUM_CHANNELS = 2
 
 CHORD_CHANNEL = 1
 
+add_mic_graph = False
+font_mult = 1
+def font_size_for(x): return int(round(font_mult * x))
+
+for arg in sys.argv:
+    if arg.startswith("fs="):
+        font_mult = float(arg[3:])
+    if arg == 'mic':
+        add_mic_graph = True
+
 # Same as WaveSource interface, but is given audio data explicity.
 class WaveArray(object):
     def __init__(self, np_array, num_channels):
@@ -347,7 +357,7 @@ class LineTextInput(TextInput):
     def __init__(self, **kwargs):
         super(LineTextInput, self).__init__(
                 multiline=False,
-                font_size = 100,
+                font_size = font_size_for(100),
                 color = dark_teal,
                 background_normal = '', background_color = light_pink,
                 foreground_color = dark_teal,
@@ -381,7 +391,7 @@ black = (0.317, 0.321, 0.317,1)
 bright_blue = (0.160, 0.850, 1,1)
 
 
-def make_button(text, size_hint_x, size_hint_y, pos_hint_x, pos_hint_y, font_size=50, color=light_pink, bg_color=dark_teal, font_name = 'fonts/AmaticSC-Regular.ttf'):
+def make_button(text, size_hint_x, size_hint_y, pos_hint_x, pos_hint_y, font_size=font_size_for(50), color=light_pink, bg_color=dark_teal, font_name = 'fonts/AmaticSC-Regular.ttf'):
     return Button(text=text, font_size=font_size, color=color, size_hint=(size_hint_x, size_hint_y), pos_hint={'x': pos_hint_x, 'y': pos_hint_y}, background_normal='', background_color=bg_color, font_name = font_name)
 
 class CoralButtonGroup(object):
@@ -402,7 +412,7 @@ class CoralButtonGroup(object):
         self.pressed.background_color = dark_teal
         self.pressed = None
 
-    def make_button(self, text, size_hint_x, size_hint_y, pos_hint_x, pos_hint_y, font_size=90, callback=None):
+    def make_button(self, text, size_hint_x, size_hint_y, pos_hint_x, pos_hint_y, font_size=font_size_for(90), callback=None):
         button = make_button(text, size_hint_x, size_hint_y, pos_hint_x, pos_hint_y, font_size)
         def cur_press(instance):
             if callback is not None: callback(instance)
@@ -410,7 +420,7 @@ class CoralButtonGroup(object):
         button.bind(on_press=cur_press)
         return button
 
-def make_bg_button(text, size_hint_x, size_hint_y, pos_hint_x, pos_hint_y, font_size=80):
+def make_bg_button(text, size_hint_x, size_hint_y, pos_hint_x, pos_hint_y, font_size=font_size_for(80)):
     return make_button(text, size_hint_x, size_hint_y, pos_hint_x, pos_hint_y, font_size, color=black, bg_color=background)
 
 class Layer(object):
@@ -517,12 +527,12 @@ class MainMainWidget1(ScreenManager):
     def make_start_screen(self):
         screen = ScreenWithBackground('start')
         label1 = Label(text=u'V\u00f6XX!',
-                font_size = 300,
+                font_size = font_size_for(300),
                 size_hint=(.5, .3), pos_hint={'x':.25, 'y':.6},
                 color= dark_teal)
 
         label2 = Label(text='Set Background Track',
-                font_size = 100,
+                font_size = font_size_for(100),
                 size_hint=(.7, .3), pos_hint={'x':.15, 'y':.4},
                 font_name = 'fonts/AmaticSC-Regular.ttf',
                 color=dark_teal)
@@ -546,7 +556,7 @@ class MainMainWidget1(ScreenManager):
     def make_mood_screen_1(self):
         screen = ScreenWithBackground('mood1')
         label = Label(text='What mood would you like today?',
-                font_size = 120,
+                font_size = font_size_for(120),
                 size_hint=(.5, .3), pos_hint={'x':.25, 'y':.6},
                 font_name = 'fonts/AmaticSC-Bold.ttf',
                 color=(0, 0.5, 0.6, 1))
@@ -623,38 +633,38 @@ class MainMainWidget1(ScreenManager):
     def make_input_screen(self):
         screen = ScreenWithBackground('input')
         label1 = Label(text='Advanced Settings',
-                font_size = 150,
+                font_size = font_size_for(150),
                 size_hint=(.5, .3), pos_hint={'x':.25, 'y':.7},
                 font_name = 'fonts/AmaticSC-Bold.ttf',
                 color= dark_teal)
 
         label2 = Label(text='for your masterpiece',
-                font_size = 100,
+                font_size = font_size_for(100),
                 size_hint=(.5, .3), pos_hint={'x':.25, 'y':.55},
                 font_name = 'fonts/AmaticSC-Bold.ttf',
                 color=dark_teal)
 
 
         label3 = Label(text='Set Tempo:',
-                font_size = 100,
+                font_size = font_size_for(100),
                 size_hint=(.3, .1), pos_hint={'x':.1, 'y':.5},
                 font_name = 'fonts/AmaticSC-Regular.ttf',
                 color= black)
 
         label4 = Label(text='Set Key:',
-                font_size = 100,
+                font_size = font_size_for(100),
                 size_hint=(.3, .1), pos_hint={'x':.1, 'y':.38},
                 font_name = 'fonts/AmaticSC-Regular.ttf',
                 color= black)
 
         label5 = Label(text='Set Chords:',
-                font_size = 100,
+                font_size = font_size_for(100),
                 size_hint=(.3, .1), pos_hint={'x':.1, 'y':.26},
                 font_name = 'fonts/AmaticSC-Regular.ttf',
                 color= black)
 
         label6 = Label(text='BPM',
-                font_size = 80,
+                font_size = font_size_for(80),
                 size_hint=(.3, .05), pos_hint={'x':.5, 'y':.5},
                 font_name = 'fonts/AmaticSC-Regular.ttf',
                 color= black)
@@ -708,13 +718,13 @@ class MainMainWidget1(ScreenManager):
     def make_rhythm_screen(self):
         screen = ScreenWithBackground('rhythm')
         label1 = Label(text='What rhythm would you like?',
-                font_size = 120,
+                font_size = font_size_for(120),
                 size_hint=(.5, .3), pos_hint={'x':.25, 'y':.7},
                 font_name = 'fonts/AmaticSC-Bold.ttf',
                 color=dark_teal)
 
         label2 = Label(text='Select the fastest notes you want in your chord',
-                font_size = 70,
+                font_size = font_size_for(70),
                 size_hint=(.6, .2), pos_hint={'x':.2, 'y':.62},
                 font_name = 'fonts/Caveat-Regular.ttf',
                 color=dark_teal)
@@ -749,20 +759,20 @@ class MainMainWidget1(ScreenManager):
     def make_instrument_screen(self):
         screen = ScreenWithBackground('instrument')
         label1 = Label(text='Select Instrument',
-                font_size = 150,
+                font_size = font_size_for(150),
                 size_hint=(.7, .2), pos_hint={'x':.15, 'y':.8},
                 font_name = 'fonts/AmaticSC-Bold.ttf',
                 color=dark_teal)
 
         label2 = Label(text='Quick Selection',
-                font_size = 100,
+                font_size = font_size_for(100),
                 size_hint=(.38, .2), pos_hint={'x':.5, 'y':.65},
                 font_name = 'fonts/AmaticSC-Regular.ttf',
                 color=black)
 
 
         label3 = Label(text='MIDI Number',
-                font_size = 100,
+                font_size = font_size_for(100),
                 size_hint=(.18, .15), pos_hint={'x':.15, 'y':.65},
                 font_name = 'fonts/AmaticSC-Regular.ttf',
                 color=black)
@@ -774,7 +784,7 @@ class MainMainWidget1(ScreenManager):
 
         instrument_label = Label(
                 text=midi_names.name_for(first_instrument),
-                font_size = 100,
+                font_size = font_size_for(100),
                 size_hint=(.18, .15), pos_hint={'x':.15, 'y':.35},
                 font_name = 'fonts/AmaticSC-Regular.ttf',
                 color=black)
@@ -901,7 +911,7 @@ class MainMainWidget1(ScreenManager):
         screen = ScreenWithBackground('tracks')
 
         label1 = Label(text='All Saved Tracks',
-                font_size = 100,
+                font_size = font_size_for(100),
                 size_hint=(.5, .3), pos_hint={'x':.25, 'y':.75},
                 font_name = 'fonts/AmaticSC-Bold.ttf',
                 color=dark_teal)
@@ -930,7 +940,7 @@ class MainMainWidget1(ScreenManager):
             self.select_boxes.append(select_box)
 
             self.label = Label(text='Track  '+ str(i+1),
-                font_size = 40,
+                font_size = font_size_for(40),
                 size_hint=(.08, .05), pos_hint={'x':.03, 'y':self.y_pos[i]},
                 font_name = 'fonts/AmaticSC-Bold.ttf',
                 color=black)
@@ -1049,7 +1059,7 @@ class MainMainWidget1(ScreenManager):
         screen = ScreenWithBackground('record')
 
         self.record_label = Label(text='...',
-                font_size = 70,
+                font_size = font_size_for(70),
                 size_hint=(.3, .1), pos_hint={'x':.35, 'y':.85},
                 font_name = 'fonts/AmaticSC-Bold.ttf',
                 color=(0, 0.5, 0.6, 1))
@@ -1104,22 +1114,22 @@ class MainMainWidget1(ScreenManager):
         self.layer_note_ticks_slider.bind(value=change_note_ticks_value)
 
         label_background_gain = Label(text='background\nvolume',
-                font_size = 30,
+                font_size = font_size_for(30),
                 size_hint=(.1, .05), pos_hint={'x':.1, 'y':.05},
                 color=dark_teal)
 
         label_layer_gain = Label(text='solo\nvolume',
-                font_size = 30,
+                font_size = font_size_for(30),
                 size_hint=(.1, .05), pos_hint={'x':.2, 'y':.05},
                 color=dark_teal)
 
         label_pitch_snap = Label(text='pitch\nsnap',
-                font_size = 30,
+                font_size = font_size_for(30),
                 size_hint=(.1, .05), pos_hint={'x':.3, 'y':.05},
                 color=dark_teal)
 
         label_rhythm_snap = Label(text='rhythm\nsnap',
-                font_size = 30,
+                font_size = font_size_for(30),
                 size_hint=(.1, .05), pos_hint={'x':.4, 'y':.05},
                 color=dark_teal)
 
@@ -1221,15 +1231,18 @@ class MainMainWidget1(ScreenManager):
         screen.add_widget(label_pitch_snap)
         screen.add_widget(label_rhythm_snap)
 
-        self.graph_widget = GraphDisplayWidget(
-                size_hint=(.05, 2), pos_hint={'x':.9, 'y':.58})
         self.raw_segments_widget = SegmentsDisplayWidget(
                 size_hint=(.5, .2), pos_hint={'x':.12, 'y':.58},
                 color= bright_blue)
         self.processed_segments_widget = SegmentsDisplayWidget(
                 size_hint=(.5, .2), pos_hint={'x':.12, 'y':.58},
                 color= coral) #it's still just red rn?
-        screen.add_widget(self.graph_widget)
+        if add_mic_graph:
+            self.graph_widget = GraphDisplayWidget(
+                    size_hint=(.05, 2), pos_hint={'x':.9, 'y':.58})
+            screen.add_widget(self.graph_widget)
+        else:
+            self.graph_widget = None
         screen.add_widget(self.raw_segments_widget)
         screen.add_widget(self.processed_segments_widget)
         self.add_widget(screen)
@@ -1267,7 +1280,8 @@ class MainMainWidget1(ScreenManager):
 
         # pitch detection: get pitch and display on meter and graph
         self.cur_pitch = self.pitch.write(mono)
-        self.graph_widget.graph.add_point(self.cur_pitch)
+        if self.graph_widget:
+            self.graph_widget.graph.add_point(self.cur_pitch)
 
         if self.status == RECORDING:
             self.partial.append(frames, 2)
