@@ -618,6 +618,7 @@ class MainMainWidget1(ScreenManager):
     def finish_set_instrument(self, instance):
         self.cur_layer.instrument = self.instrument_input.int_value
         self.current = 'record'
+        self.update_all_saved_layers()
 
     def make_input_screen(self):
         screen = ScreenWithBackground('input')
@@ -829,6 +830,7 @@ class MainMainWidget1(ScreenManager):
 
         self.save_button.disabled = self.status is not None or self.cur_layer_index is not None or self.cur_layer.data is None
         self.new_button.disabled = self.status is not None or self.cur_layer_index is None
+        self.all_new_layer_button.disabled =  self.status is not None or self.cur_layer_index is None
         self.delete_button.disabled = self.status is not None or (self.cur_layer_index is None and self.cur_layer.data is None)
 
         text = u'{} layer{}'.format(len(self.layers),
@@ -856,6 +858,10 @@ class MainMainWidget1(ScreenManager):
             if 0 <= i < len(self.layers):
                 self.cur_layer_index = i
                 self.cur_layer = self.layers[i]
+                raw_pitches, processed_pitches = self.cur_layer.process_with(self.engine)
+                self.raw_segments_widget.display.set_segments(raw_pitches)
+                self.processed_segments_widget.display.set_segments(processed_pitches)
+                if self.engine_status and self.engine_status.stop_flag: self.engine_status = None
                 self.update_record_screen()
                 self.current = 'record'
         return f
@@ -943,10 +949,12 @@ class MainMainWidget1(ScreenManager):
 
             self.update_record_screen()
 
-        self.play_selected_button = make_button('Play', .1, .07, .33, .75, 60)
+        self.play_selected_button = make_button('Play', .1, .07, .25, .75, 60)
         self.play_selected_button.bind(on_press=play_selected)
-        self.play_all_button = make_button('Play All', .2, .07, .48, .75, 60)
+        self.play_all_button = make_button('Play All', .2, .07, .4, .75, 60)
         self.play_all_button.bind(on_press=play_all)
+        self.all_new_layer_button = make_button('New', .1, .07, .65, .75, 60)
+        self.all_new_layer_button.bind(on_press=self.new_layer)
 
         button_back = make_bg_button('Back', .1, .15, .01, .85)
         button_back.bind(on_press=self.go_to_callback('record'))
@@ -955,6 +963,7 @@ class MainMainWidget1(ScreenManager):
         screen.add_widget(button_back)
         screen.add_widget(self.play_selected_button)
         screen.add_widget(self.play_all_button)
+        screen.add_widget(self.all_new_layer_button)
         self.add_widget(screen)
 
     def update_chord_template(self):
@@ -981,10 +990,14 @@ class MainMainWidget1(ScreenManager):
     def get_note_ticks(self):
         return (40, 60, 80, 120, 240)[int(round(self.layer_note_ticks_slider.value))]
 
-    def play_layers(self, layers, focus=None):
-        self.layers_mixer = Mixer()
+    def clear_segments_display(self):
         self.raw_segments_widget.display.set_segments([])
         self.processed_segments_widget.display.set_segments([])
+        if self.engine_status and self.engine_status.stop_flag: self.engine_status = None
+
+    def play_layers(self, layers, focus=None):
+        self.layers_mixer = Mixer()
+        self.clear_segments_display()
         for layer in layers:
             raw_pitches, processed_pitches = layer.process_with(self.engine)
             rendered_data = layer.render_with(self.engine)
@@ -1004,6 +1017,17 @@ class MainMainWidget1(ScreenManager):
         self.mixer.remove(self.layers_mixer)
         del self.layers_mixer
         for bar in self.chord_bars: bar.background_color = dark_teal
+
+    def new_layer(self, instance):
+        self.cur_layer_index = None
+        self.cur_layer = Layer(self.instrument_input.int_value, None,
+                int(round(self.layer_gain_slider.value)),
+                self.layer_pitch_snap_slider.value,
+                self.get_note_ticks())
+        self.clear_segments_display()
+        self.update_all_saved_layers()
+        self.update_record_screen()
+        self.current = 'record'
 
     def make_record_screen(self):
         screen = ScreenWithBackground('record')
@@ -1111,15 +1135,6 @@ class MainMainWidget1(ScreenManager):
 
             self.update_record_screen()
 
-        def new_layer(instance):
-            self.cur_layer_index = None
-            self.cur_layer = Layer(self.instrument_input.int_value, None,
-                    int(round(self.layer_gain_slider.value)),
-                    self.layer_pitch_snap_slider.value,
-                    self.get_note_ticks())
-            self.update_all_saved_layers()
-            self.update_record_screen()
-
         def delete_layer(instance):
             if self.cur_layer_index is not None:
                 del self.layers[self.cur_layer_index]
@@ -1129,6 +1144,7 @@ class MainMainWidget1(ScreenManager):
                     int(round(self.layer_gain_slider.value)),
                     self.layer_pitch_snap_slider.value,
                     self.get_note_ticks())
+            self.clear_segments_display()
             self.update_all_saved_layers()
             self.update_record_screen()
 
@@ -1150,7 +1166,7 @@ class MainMainWidget1(ScreenManager):
 
         self.play_button.bind(on_press=play)
         self.save_button.bind(on_press=save)
-        self.new_button.bind(on_press=new_layer)
+        self.new_button.bind(on_press=self.new_layer)
         self.delete_button.bind(on_press=delete_layer)
         self.record_button.bind(on_press=record)
 
