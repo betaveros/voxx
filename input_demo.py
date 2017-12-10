@@ -11,7 +11,6 @@
 # contains example code for some simple input (microphone) processing.
 # Requires aubio (pip install aubio).
 
-
 import sys
 sys.path.append('..')
 
@@ -41,6 +40,7 @@ from kivy.uix.gridlayout import GridLayout
 
 import chords_gen
 import demo_chords
+import midi_names
 
 import random
 from pitch_detector import PitchDetector
@@ -853,8 +853,16 @@ class MainMainWidget1(ScreenManager):
         return f
 
     def update_all_saved_layers(self):
+        counter = Counter()
         for i, tb in enumerate(self.track_buttons):
-            tb.disabled = i >= len(self.layers)
+            if i < len(self.layers):
+                tb.disabled = False
+                instrument = self.layers[i].instrument
+                counter[instrument] += 1
+                tb.text = "{} {}".format(midi_names.name_for(instrument), counter[instrument])
+            else:
+                tb.disabled = True
+                tb.text = ""
         for i, sb in enumerate(self.select_boxes):
             sb.disabled = i >= len(self.layers)
             sb.active = sb.active and i < len(self.layers)
