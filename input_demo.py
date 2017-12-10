@@ -1073,14 +1073,14 @@ class MainMainWidget1(ScreenManager):
         self.layer_gain_slider.bind(value=change_layer_gain)
 
         self.layer_pitch_snap_slider = Slider(
-                min=0, max=20, value=20, orientation='vertical',
+                min=0, max=20, value=0, orientation='vertical',
                 size_hint=(.1, .3),
                 pos_hint={'x': .3, 'y': .15})
         def change_layer_pitch_snap(instance, value):
             self.cur_layer.pitch_snap = value
         self.layer_pitch_snap_slider.bind(value=change_layer_pitch_snap)
         self.layer_note_ticks_slider = Slider(
-                min=0, max=4, value=2, orientation='vertical',
+                min=0, max=4, value=0, orientation='vertical',
                 size_hint=(.1, .3),
                 pos_hint={'x': .4, 'y': .15})
         def change_note_ticks_value(instance, value):
