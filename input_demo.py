@@ -888,6 +888,7 @@ class MainMainWidget1(ScreenManager):
                 self.raw_segments_widget.display.set_segments(raw_pitches)
                 self.processed_segments_widget.display.set_segments(processed_pitches)
                 if self.engine_status and self.engine_status.stop_flag: self.engine_status = None
+                self.update_sliders_from_layer()
                 self.update_record_screen()
                 self.current = 'record'
         return f
@@ -1055,6 +1056,14 @@ class MainMainWidget1(ScreenManager):
         self.update_record_screen()
         self.current = 'record'
 
+    def update_sliders_from_layer(self):
+        self.layer_gain_slider.value = self.cur_layer.gain
+        self.layer_pitch_snap_slider.value = self.cur_layer.pitch_snap
+        try:
+            self.layer_note_ticks_slider.value = (40, 60, 80, 120, 240).index(self.cur_layer.note_ticks)
+        except ValueError:
+            self.layer_note_ticks_slider.value = 2 # idk
+
     def make_record_screen(self):
         screen = ScreenWithBackground('record')
 
@@ -1171,6 +1180,7 @@ class MainMainWidget1(ScreenManager):
                     self.layer_pitch_snap_slider.value,
                     self.get_note_ticks())
             self.clear_segments_display()
+            # self.update_sliders_from_layer() # don't need, same values.
             self.update_all_saved_layers()
             self.update_record_screen()
 
