@@ -76,9 +76,8 @@ def chord_generater(chord_degs, key, rhythm):
 	else:
 		scale = MINOR
 		numerals = MINOR_NUMERALS
-	scale_notes = []
-	for pmt in scale:
-		scale_notes.append(starting_note + pmt)
+	all_notes = [starting_note + i for i in range(12)]
+	scale_notes = [starting_note + i for i in scale]
 	print(scale_notes)
 	top_line= []
 	mid_line = []
@@ -107,7 +106,8 @@ def chord_generater(chord_degs, key, rhythm):
 			top_dur_pitch.append((note, top_line[x]))
 			middle_dur_pitch.append((note, mid_line[x]))
 			root_dur_pitch.append((note, root_line[x]))
-			pitch_dict = dict((note, 1) for note in scale_notes)
+			pitch_dict = dict((m, 0) for m in all_notes)
+			for m in scale_notes: pitch_dict[m] = 1
 			pitch_dict[top_line[x]] = 2
 			pitch_dict[mid_line[x]] = 2
 			pitch_dict[root_line[x]] = 2

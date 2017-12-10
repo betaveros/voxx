@@ -32,16 +32,19 @@ def frame_of_tick(bpm, tick):
 def make_snap_template(chord):
     # type: (Chord) -> List[Tuple[int, int]]
     template = list(sorted((p % 12, w) for p, w in chord.pitches.iteritems()))
-    lp, lw = template[-1]
-    rp, rw = template[0]
-    return [(lp - 12, lw)] + template + [(rp + 12, rw)]
+    return [(p - 12, w) for p, w in template] + template + [(p + 12, w) for p, w in template]
+
+# aggro = 0  : p - (pitch - octave) + 0, 0, 0
+# aggro = 0.5: p - (pitch - octave) + 1, 0, 0
+# aggro = 1  : p - (pitch - octave) + 1, 1, 0
 
 def snap_to_template(pitch, template, aggro):
     # template = (0, 2, 4, 5, 7, 9, 11, 12)
     if pitch == 0: return 0
     octave = 12 * (pitch // 12)
+    penalties = [min(2*aggro, 1), max(0, 2*aggro - 1), 0]
     # print(template, pitch, template, aggro)
-    return int(octave + min(template, key=lambda (p, w): abs(p - (pitch - octave)) / w ** aggro)[0])
+    return int(octave + min(template, key=lambda (p, w): abs(p - (pitch - octave)) + 1.2 * penalties[w])[0])
 
 def push_near(anchor, pitch, max_jump):
     if pitch == 0: return 0

@@ -1099,7 +1099,7 @@ class MainMainWidget1(ScreenManager):
         self.layer_gain_slider.bind(value=change_layer_gain)
 
         self.layer_pitch_snap_slider = Slider(
-                min=0, max=20, value=0, orientation='vertical',
+                min=0, max=1, value=0, orientation='vertical',
                 size_hint=(.1, .3),
                 pos_hint={'x': .3, 'y': .15})
         def change_layer_pitch_snap(instance, value):
