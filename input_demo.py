@@ -767,9 +767,24 @@ class MainMainWidget1(ScreenManager):
                 font_name = 'fonts/AmaticSC-Regular.ttf',
                 color=black)
 
+        first_instrument = 40 # violin
         self.instrument_input = IntInput(
-                text = '40', #Violin
+                text = str(first_instrument),
                 size_hint=(.18, .15), pos_hint={'x':.15, 'y':.5})
+
+        instrument_label = Label(
+                text=midi_names.name_for(first_instrument),
+                font_size = 100,
+                size_hint=(.18, .15), pos_hint={'x':.15, 'y':.35},
+                font_name = 'fonts/AmaticSC-Regular.ttf',
+                color=black)
+
+        def instrument_change(instance, value):
+            try:
+                instrument_label.text = midi_names.name_for(int(value))
+            except ValueError:
+                instrument_label.text = '???'
+        self.instrument_input.bind(text=instrument_change)
 
 
         instr_group = CoralButtonGroup()
@@ -799,6 +814,7 @@ class MainMainWidget1(ScreenManager):
         screen.add_widget(label2)
         screen.add_widget(label3)
         screen.add_widget(self.instrument_input)
+        screen.add_widget(instrument_label)
         screen.add_widget(button_preview)
         screen.add_widget(button_done)
         screen.add_widget(button_cancel)
