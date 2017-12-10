@@ -106,8 +106,8 @@ class VoxxPartial(object):
 
     def flush_chunk(self):
         cur_pitch = majority_pitch(self.unflushed_segments, self.cur_template, self.aggro, self.truncate)
-        if self.last_pitch and cur_pitch:
-            cur_pitch = push_near(self.last_pitch, cur_pitch, 10)
+        # if self.last_pitch and cur_pitch:
+        #    cur_pitch = push_near(self.last_pitch, cur_pitch, 10)
         self.last_pitch = cur_pitch
 
         self.all_processed_segments.append((cur_pitch, self.unflushed_segments_size))
