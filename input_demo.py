@@ -798,7 +798,9 @@ class MainMainWidget1(ScreenManager):
         self.add_widget(screen)
 
     def engine_text_callback(self, i, text):
-        self.engine_playing_text = u"[{}] {}".format(str(i), text)
+        for bar in self.chord_bars: bar.background_color = dark_teal
+        self.chord_bars[i].background_color = coral
+        self.engine_playing_text = text
         self.update_record_screen()
 
     def update_record_screen(self):
@@ -810,7 +812,7 @@ class MainMainWidget1(ScreenManager):
 
         self.button_instrument.disabled = self.status is not None
         self.button_background.disabled = self.status is not None
-        self.button_all_tracks.disabled = self.status is not None
+        # self.button_all_tracks.disabled = self.status is not None
 
         self.play_button.text = 'Stop' if self.status == PLAYING else 'Play'
         self.record_button.text = 'Stop' if self.status == RECORDING else 'Record'
@@ -902,8 +904,7 @@ class MainMainWidget1(ScreenManager):
 
         def play_selected(instance):
             if self.status == PLAYING_SELECTED:
-                self.status = None
-                self.engine_stop(); self.stop_layers()
+                self.stop()
             else:
                 self.status = PLAYING_SELECTED
                 self.engine_stop = self.engine.play_lines(self.synth, self.sched, self.get_background_gain, self.engine_text_callback)
@@ -918,8 +919,7 @@ class MainMainWidget1(ScreenManager):
 
         def play_all(instance):
             if self.status == PLAYING_ALL:
-                self.status = None
-                self.engine_stop(); self.stop_layers()
+                self.stop()
             else:
                 self.status = PLAYING_ALL
                 self.engine_stop = self.engine.play_lines(self.synth, self.sched, self.get_background_gain, self.engine_text_callback)
@@ -982,9 +982,12 @@ class MainMainWidget1(ScreenManager):
     def get_background_gain(self):
         return int(round(self.background_gain_slider.value))
 
-    def stop_layers(self):
+    def stop(self):
+        self.status = None
+        self.engine_stop()
         self.mixer.remove(self.layers_mixer)
         del self.layers_mixer
+        for bar in self.chord_bars: bar.background_color = dark_teal
 
     def make_record_screen(self):
         screen = ScreenWithBackground('record')
@@ -1069,8 +1072,7 @@ class MainMainWidget1(ScreenManager):
 
         def play(instance):
             if self.status == PLAYING:
-                self.status = None
-                self.engine_stop(); self.stop_layers()
+                self.stop()
             else:
                 self.status = PLAYING
                 self.engine_stop = self.engine.play_lines(self.synth, self.sched, self.get_background_gain, self.engine_text_callback)
@@ -1116,8 +1118,7 @@ class MainMainWidget1(ScreenManager):
 
         def record(instance):
             if self.status == RECORDING:
-                self.status = None
-                self.engine_stop(); self.stop_layers()
+                self.stop()
                 self.cur_layer.data = combine_buffers(self.partial.all_buffers)
             else:
                 self.status = RECORDING
