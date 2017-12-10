@@ -487,7 +487,7 @@ class MainMainWidget1(ScreenManager):
         self.partial = None
         self.layers = []
         self.cur_layer_index = None
-        self.cur_layer = Layer(40, None, 100, 20, 80)
+        self.cur_layer = Layer(40, None, 100, 0, 40)
 
         self.channel_select = 0
 
