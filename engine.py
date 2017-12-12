@@ -214,7 +214,41 @@ class VoxxEngine(object):
         partial.append(buf.data, buf.get_num_channels())
         return partial.all_segments, partial.all_processed_segments
 
-    def render(self, pitch_segments, note_instrument, layer_gain, chords_gain = None):
+    def render_chords(self, num_frames, chords_gain):
+        synth = Synth('data/FluidR3_GM.sf2')
+        synth.program(CHORD_CHANNEL, 0, self.chord_instrument)
+
+        line_progress = [(0, 0)] * len(self.lines)
+        gen_ticks = 0
+        advance = 1e9
+        ret_data_list = []
+
+        for line in self.lines:
+            synth.noteon(CHORD_CHANNEL, line[0][1], chords_gain)
+            advance = min(advance, line[0][0])
+
+        while frame_of_tick(self.bpm, gen_ticks) < num_frames:
+            cur_chunk_frames = frame_of_tick(self.bpm, gen_ticks + advance) - frame_of_tick(self.bpm, gen_ticks)
+            synth_data, continue_flag = synth.generate(cur_chunk_frames, 2)
+            ret_data_list.append(synth_data)
+
+            new_advance = 1e9
+            for i, ((note_idx, note_tick), line) in enumerate(zip(line_progress, self.lines)):
+                note_tick += advance
+                if note_tick >= line[note_idx][0]:
+                    synth.noteoff(CHORD_CHANNEL, line[note_idx][1])
+                    note_idx = (note_idx + 1) % len(line)
+                    synth.noteon(CHORD_CHANNEL, line[note_idx][1], chords_gain)
+                    note_tick = 0
+                new_advance = min(new_advance, line[note_idx][0] - note_tick)
+                line_progress[i] = (note_idx, note_tick)
+
+            gen_ticks += advance
+            advance = new_advance
+
+        return combine_buffers(ret_data_list)
+
+    def render(self, pitch_segments, note_instrument, layer_gain):
         synth = Synth('data/FluidR3_GM.sf2')
         synth.program(NOTE_CHANNEL, 0, note_instrument)
         synth.program(CHORD_CHANNEL, 0, self.chord_instrument)
@@ -222,10 +256,6 @@ class VoxxEngine(object):
         line_progress = [(0, 0)] * len(self.lines)
 
         ret_data_list = []
-
-        if chords_gain is not None:
-            for line in self.lines:
-                synth.noteon(CHORD_CHANNEL, line[0][0], chords_gain)
 
         last_pitch = 0
         i = 0
@@ -239,16 +269,6 @@ class VoxxEngine(object):
 
             synth_data, continue_flag = synth.generate(size, 2)
             ret_data_list.append(synth_data)
-
-            if chords_gain is not None:
-                for i, ((note_idx, note_tick), line) in enumerate(zip(line_progress, self.lines)):
-                    note_tick += tick_unit
-                    if note_tick >= line[note_idx][0]:
-                        synth.noteoff(CHORD_CHANNEL, line[note_idx][1])
-                        note_idx = (note_idx + 1) % len(line)
-                        synth.noteon(CHORD_CHANNEL, line[note_idx][1], chords_gain)
-                        note_tick = 0
-                    line_progress[i] = (note_idx, note_tick)
         return combine_buffers(ret_data_list)
 
 if __name__ == "__main__":

@@ -976,12 +976,32 @@ class MainMainWidget1(ScreenManager):
 
             self.update_record_screen()
 
+        def export(instance):
+            export_mixer = Mixer()
+            size = 0
+            for layer in self.layers:
+                rendered_data = layer.render_with(self.engine)
+                size = max(size, rendered_data.size)
+                export_mixer.add(WaveGenerator(WaveArray(rendered_data, 2)))
+
+            rendered_chords = self.engine.render_chords(size // 2, self.get_background_gain())
+            size = max(size, rendered_data.size)
+            export_mixer.add(WaveGenerator(WaveArray(rendered_chords, 2)))
+
+            writer = AudioWriter('processed')
+            writer.start()
+            data, _ = export_mixer.generate(size // 2, 2)
+            writer.add_audio(data, 2)
+            writer.stop()
+
         self.play_selected_button = make_button('Play', .1, .07, .25, .75, 60)
         self.play_selected_button.bind(on_press=play_selected)
         self.play_all_button = make_button('Play All', .2, .07, .4, .75, 60)
         self.play_all_button.bind(on_press=play_all)
         self.all_new_layer_button = make_button('New', .1, .07, .65, .75, 60)
         self.all_new_layer_button.bind(on_press=self.new_layer)
+        self.export_button = make_button('Export', .1, .07, .85, .9, 60)
+        self.export_button.bind(on_press=export)
 
         button_back = make_bg_button('Back', .1, .15, .01, .85)
         button_back.bind(on_press=self.go_to_callback('record'))
@@ -991,6 +1011,7 @@ class MainMainWidget1(ScreenManager):
         screen.add_widget(self.play_selected_button)
         screen.add_widget(self.play_all_button)
         screen.add_widget(self.all_new_layer_button)
+        screen.add_widget(self.export_button)
         self.add_widget(screen)
 
     def update_chord_template(self):
