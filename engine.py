@@ -248,6 +248,19 @@ class VoxxEngine(object):
 
         return combine_buffers(ret_data_list)
 
+    def render_demo(self, note_instrument):
+        synth = Synth('data/FluidR3_GM.sf2')
+        synth.program(NOTE_CHANNEL, 0, note_instrument)
+        ret_data_list = []
+        for pitch in [60, 64, 67]:
+            synth.noteon(NOTE_CHANNEL, pitch, 100)
+            synth_data, _ = synth.generate(Audio.sample_rate // 3, 2)
+            synth.noteoff(NOTE_CHANNEL, pitch)
+            ret_data_list.append(synth_data)
+        synth_data, _ = synth.generate(Audio.sample_rate, 2)
+        ret_data_list.append(synth_data)
+        return combine_buffers(ret_data_list)
+
     def render(self, pitch_segments, note_instrument, layer_gain):
         synth = Synth('data/FluidR3_GM.sf2')
         synth.program(NOTE_CHANNEL, 0, note_instrument)

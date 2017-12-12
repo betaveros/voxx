@@ -812,7 +812,12 @@ class MainMainWidget1(ScreenManager):
         add_instrument_button(32, 'Bass'     , .18, .15, .5, .14)
         add_instrument_button(65, 'Saxophone', .18, .15, .7, .14)
 
+        def preview_instrument(instance):
+            instr = self.instrument_input.int_value
+            self.mixer.add(WaveGenerator(WaveArray(self.engine.render_demo(instr), 2)))
+
         button_preview = make_button('Preview', .18, .15, .08, .14, 90, bg_color = darker_teal)
+        button_preview.bind(on_press=preview_instrument)
         button_done    = make_button('Done', .18, .15, .28, .14, 90, bg_color = darker_teal)
         button_done.bind(on_press=self.finish_set_instrument)
 
