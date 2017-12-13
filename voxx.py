@@ -839,7 +839,10 @@ class MainMainWidget1(ScreenManager):
 
     def engine_text_callback(self, i, text):
         for bar in self.chord_bars: bar.background_color = dark_teal
-        self.chord_bars[i].background_color = coral
+        try:
+            self.chord_bars[i].background_color = coral
+        except:
+            pass
         self.engine_playing_text = text
         self.update_record_screen()
 
@@ -990,7 +993,7 @@ class MainMainWidget1(ScreenManager):
                 export_mixer.add(WaveGenerator(WaveArray(rendered_data, 2)))
 
             rendered_chords = self.engine.render_chords(size // 2, self.get_background_gain())
-            size = max(size, rendered_data.size)
+            size = max(size, rendered_chords.size)
             export_mixer.add(WaveGenerator(WaveArray(rendered_chords, 2)))
 
             writer = AudioWriter('processed')
