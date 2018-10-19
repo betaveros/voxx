@@ -509,7 +509,10 @@ class MainMainWidget1(ScreenManager):
         self.engine_status = None
 
         self.mixer = Mixer()
-        self.synth = Synth('data/FluidR3_GM.sf2')
+        try:
+            self.synth = Synth('data/FluidR3_GM.sf2')
+        except Exception as e:
+            raise Exception("Error opening Synth from data/FluidR3_GM.sf2. Please find the Fluid Synth Sound Font online and put it in the data directory.")
         self.synth.program(NOTE_CHANNEL, 0, 73) # flute
         self.synth.program(CHORD_CHANNEL, 0, 24)
         self.tempo_map = SimpleTempoMap(120)
@@ -1336,4 +1339,7 @@ class MainMainWidget1(ScreenManager):
 
 REC_INDEX = [1,2,3,4,5,6,7,8,9]
 # pass in which MainWidget to run as a command-line arg
+
+
+
 run(MainMainWidget1)
