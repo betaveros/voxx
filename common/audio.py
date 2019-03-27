@@ -8,11 +8,15 @@
 #
 #####################################################################
 
+from __future__ import print_function
 import pyaudio
 import numpy as np
-import core
+import common.core as core
 import time
-from ConfigParser import ConfigParser
+try: # python 2
+    from ConfigParser import ConfigParser
+except ImportError: # python 3
+    from configparser import ConfigParser
 
 class Audio(object):
     # global variable: might change when Audio driver is set up.
@@ -73,8 +77,8 @@ class Audio(object):
                     data_str = self.stream.read(num_frames, False)
                     data_np = np.fromstring(data_str, dtype=np.float32)
                     self.input_func(data_np, self.num_channels)
-            except IOError, e:
-                print 'got error', e
+            except IOError as e:
+                print('got error', e)
 
         # Ask the generator to generate some audio samples.
         num_frames = self.stream.get_write_available() # number of frames to supply
@@ -119,21 +123,21 @@ class Audio(object):
             for opt in items:
                 if opt[0] == 'outputdevice':
                     out_dev = int(opt[1])
-                    print 'using config file output device:', out_dev
+                    print('using config file output device:', out_dev)
 
                 elif opt[0] == 'inputdevice':
                     in_dev = int(opt[1])
-                    print 'using config file input device:', in_dev
+                    print('using config file input device:', in_dev)
 
                 elif opt[0] == 'buffersize':
                     buf_size = int(opt[1])
-                    print 'using config file buffer size:', buf_size
+                    print('using config file buffer size:', buf_size)
 
                 elif opt[0] == 'samplerate':
                     sample_rate = int(opt[1])
-                    print 'using config file samplerate:', sample_rate
+                    print('using config file samplerate:', sample_rate)
 
-        except Exception, e:
+        except Exception as e:
             pass
 
         # for Windows, we want to find the ASIO host API and associated devices
@@ -145,24 +149,24 @@ class Audio(object):
                     host_api_idx = i
                     out_dev = api['defaultOutputDevice']
                     in_dev = api['defaultInputDevice']
-                    print 'Found ASIO host', host_api_idx
-                    print '  using output device', out_dev
-                    print '  using input device', in_dev
+                    print('Found ASIO host', host_api_idx)
+                    print('  using output device', out_dev)
+                    print('  using input device', in_dev)
 
         return out_dev, in_dev, buf_size, sample_rate
 
 def print_audio_devices():
     audio = pyaudio.PyAudio()
     cnt = audio.get_host_api_count()
-    print 'Audio APIs available.'
-    print 'idx outDev inDev name'
+    print('Audio APIs available.')
+    print('idx outDev inDev name')
     for i in range(cnt):
         api = audio.get_host_api_info_by_index(i)
         params = (i, api['defaultOutputDevice'], api['defaultInputDevice'], api['name'])
-        print "%2d: %2d      %2d   %s" % params
+        print("%2d: %2d      %2d   %s" % params)
 
-    print '\nAudio Devices available.'
-    print 'idx SRate outCh outLat inCh inLat name'
+    print('\nAudio Devices available.')
+    print('idx SRate outCh outLat inCh inLat name')
     cnt = audio.get_device_count()
     for i in range(cnt):
         dev = audio.get_device_info_by_index(i)
@@ -170,7 +174,7 @@ def print_audio_devices():
                      dev['maxOutputChannels'], dev['defaultHighOutputLatency'],
                      dev['maxInputChannels'], dev['defaultHighInputLatency'],
                      dev['name'])
-        print "%2d: %d %d     %.3f  %d    %.3f %s" % params
+        print("%2d: %d %d     %.3f  %d    %.3f %s" % params)
     audio.terminate()
 
 if __name__ == "__main__":

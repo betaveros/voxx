@@ -9,8 +9,8 @@
 #####################################################################
 
 import numpy as np
-import fluidsynth
-from audio import Audio
+import common.fluidsynth as fluidsynth
+from common.audio import Audio
 
 # create another kind of generator that generates audio based on the fluid
 # synth synthesizer

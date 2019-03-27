@@ -106,9 +106,9 @@ class IOBuffer(object):
             tmp = self.buffer.copy()
             tmp.resize(num_samples)
             if num_samples < len(self.buffer):
-                print 'IOBuffer:overrun'
+                print('IOBuffer:overrun')
             else:
-                print 'IOBuffer:underrun'
+                print('IOBuffer:underrun')
 
         else:
             tmp = self.buffer
@@ -221,7 +221,7 @@ class OnsetDisplay(InstructionGroup):
         self.add(PopMatrix())
 
     def set_type(self, t):
-        print t
+        print(t)
         if t == 'kick':
             self.anim = KFAnim((0, 1,1,1,1, self.start_sz), (0.5, 1,0,0,1, 0))
         else:

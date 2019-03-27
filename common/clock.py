@@ -10,7 +10,7 @@
 
 import time
 import numpy as np
-from audio import Audio
+from common.audio import Audio
 
 
 # Simple time keeper object. It starts at 0 and knows how to pause

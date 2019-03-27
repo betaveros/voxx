@@ -8,10 +8,11 @@
 #
 #####################################################################
 
+from __future__ import print_function
 import numpy as np
 import os.path
 import wave
-from audio import Audio
+from common.audio import Audio
 
 class AudioWriter(object):
     def __init__(self, filebase, output_wave=True):
@@ -36,23 +37,23 @@ class AudioWriter(object):
 
     def start(self) :
         if not self.active:
-            print 'AudioWriter: start capture'
+            print('AudioWriter: start capture')
             self.active = True
             self.buffers = []
 
     def stop(self) :
         if self.active:
-            print 'AudioWriter: stop capture'
+            print('AudioWriter: stop capture')
             self.active = False
 
             output = combine_buffers(self.buffers)
             if len(output) == 0:
-                print 'AudioWriter: empty buffers. Nothing to write'
+                print('AudioWriter: empty buffers. Nothing to write')
                 return
 
             ext = 'wav' if self.output_wave else 'npy'
             filename = self._get_filename(ext)
-            print 'AudioWriter: saving', len(output), 'samples in', filename
+            print('AudioWriter: saving', len(output), 'samples in', filename)
             if self.output_wave:
                 write_wave_file(output, 1, filename)
             else:

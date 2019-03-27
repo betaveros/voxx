@@ -8,7 +8,7 @@
 #
 #####################################################################
 
-from clock import kTicksPerQuarter, quantize_tick_up
+from common.clock import kTicksPerQuarter, quantize_tick_up
 
 class Metronome(object):
     """Plays a steady click every beat.

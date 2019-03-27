@@ -10,7 +10,7 @@
 
 import numpy as np
 import wave
-from audio import Audio
+from common.audio import Audio
 
 # Interface for reading data from a wave file. Does not store this data locally.
 # Simple call to get_frames() to get data in format we like (numpy array, float32)

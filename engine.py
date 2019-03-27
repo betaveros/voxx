@@ -44,7 +44,10 @@ def snap_to_template(pitch, template, aggro):
     octave = 12 * (pitch // 12)
     penalties = [min(2*aggro, 1), max(0, 2*aggro - 1), 0]
     # print(template, pitch, template, aggro)
-    return int(octave + min(template, key=lambda (p, w): abs(p - (pitch - octave)) + 1.2 * penalties[w])[0])
+    def key(pw):
+        p, w = pw
+        return abs(p - (pitch - octave)) + 1.2 * penalties[w]
+    return int(octave + min(template, key=key)[0])
 
 def push_near(anchor, pitch, max_jump):
     if pitch == 0: return 0
@@ -181,7 +184,8 @@ class VoxxEngine(object):
 
         play_status = VoxxPlayStatus(scheduler)
 
-        def next_note_play(tick, (melody, i)):
+        def next_note_play(tick, melody_i):
+            melody, i = melody_i
             synth.noteoff(CHORD_CHANNEL, melody[(i - 1)%len(melody)][1])
             if play_status.stop_flag: return
             synth.noteon(CHORD_CHANNEL, melody[i][1], gain_callback())
