@@ -951,11 +951,7 @@ class MainMainWidget1(ScreenManager):
             print('bpm broken: ' + repr(self.bpm_input.text))
             bpm = 120
 
-        try:
-            chords = [int(s) for s in self.chords_input.text.split(',')]
-        except ValueError:
-            print('chords broken: ' + repr(self.chords_input.text))
-            chords = [1, 5, 6, 4]
+        chords = self.chords_input.text.split(',')
 
         key_root = self.key_input.text.upper()
         key_mode = 'minor' if self.mode_group.pressed == self.button_minor else 'major'

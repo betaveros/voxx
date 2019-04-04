@@ -27,14 +27,14 @@ MINOR = [0, 2, 3, 5, 7, 8, 10]
 MAJOR_NUMERALS = u'I ii iii IV V vi vii\u00b0'.split()
 MINOR_NUMERALS = u'i ii\u00b0 III iv v VI VII'.split()
 
+ROMAN_NUMERAL_DICT = {'I': 1, 'II': 2, 'III': 3, 'IV': 4, 'V': 5, 'VI': 6, 'VII': 7}
+
 WHOLE = [[1920]]
 HALF = [[960, 960]]
 QUA = [[480, 480, 480, 480],[960, 480, 480], [480, 960, 480]]
 EIGHTH = [[480, 480, 240, 240, 240, 240], [480, 240, 480, 240, 240, 240], [480, 240, 480, 240, 480], [480, 240, 240, 240, 240, 240, 240], [240, 480, 240, 480, 240, 240], [480, 240, 240, 240, 240, 480], [480, 480, 240, 480, 240]]
 
 RHYTHM = {1920: WHOLE, 960: HALF, 480: QUA, 240: EIGHTH}
-
-
 
 class Chord(object):
 	def __init__(self, duration, pitches):
@@ -58,24 +58,154 @@ class ChordTemplate(object):
 # Test NoteSequencer: a class that plays a single sequence of notes.
 #240 ticks: eighth note, 
 
-#chord_degs is a list of chord progressions [1,4,5,1], each number stands for one measure
-#key is a list of strings representing the key, eg: ['c', 'major']
+def chord_split(s): # split into root and inversion stuff
+	if s and s[0].isdigit():
+		return s[:1], s[1:]
+	for i, c in enumerate(s):
+		if c.isdigit():
+			return s[:i], s[i:]
+	return s, ""
+
+# hopefully supported formats: 1, 2, 3, ...; I, i, II, ii, ...; C, C#, Db, ...
+def parse_chord(chord_str, tonic, mode):
+	root_str, inv_str = chord_split(chord_str)
+	print(root_str, inv_str)
+	if mode == 'major':
+		scale = MAJOR
+		numerals = MAJOR_NUMERALS
+	else:
+		scale = MINOR
+		numerals = MINOR_NUMERALS
+	scale_notes = [tonic + i for i in scale]
+
+	major_seven = False
+
+	if not root_str: root_str = '1' # shrug
+	if root_str in 'nN': root_str = 'bII6' # shrug
+
+	final_semitone_shift = 0
+	while len(root_str) >= 2 and root_str[0] == 'b':
+		root_str = root_str[1:]
+		final_semitone_shift -= 1
+	while len(root_str) >= 2 and root_str[0] == '#':
+		root_str = root_str[1:]
+		final_semitone_shift += 1
+
+	if root_str.isdigit():
+		# classic voxx, invert arbitrarily
+		return (
+				scale_notes[(int(root_str) - 1) % 7],
+				scale_notes[(int(root_str) + 1) % 7],
+				scale_notes[(int(root_str) + 3) % 7],
+				numerals[(int(root_str) - 1) % 7]
+		)
+	elif root_str[0] in 'ivIV':
+		# roman numeral (probably)
+		pure = ''.join(c for c in root_str if c in 'ivIV').upper()
+		num = ROMAN_NUMERAL_DICT.get(pure, 1)
+		root = scale_notes[num - 1]
+		if root_str.endswith('o') or root_str.endswith(u'\u00b0'):
+			mid = root + 3
+			top = root + 6
+			name = pure.lower() + u'\u00b0'
+		elif root_str.endswith('+'):
+			mid = root + 4
+			top = root + 8
+			name = pure.upper() + '+'
+		elif root_str[0].islower():
+			mid = root + 3
+			top = root + 7
+			name = pure.lower()
+		else:
+			mid = root + 4
+			top = root + 7
+			name = pure.upper()
+	elif root_str[0] in 'abcdefgABCDEFG':
+		root_key = root_str[0].upper()
+		root = pitch_dic[root_key]
+		quality = "major"
+		name = root_key
+
+		for c in root_str[1:]:
+			if c == 'b':
+				root -= 1
+				name += 'b'
+			elif c == '#':
+				root += 1
+				name += '#'
+			elif c == 'm':
+				if quality == 'major':
+					quality = 'minor'
+			elif c == 'j':
+				quality = 'major'
+				major_seven = True
+			elif c == 'a':
+				quality = 'augmented'
+			elif c == 'd':
+				quality = 'diminished'
+
+		if quality == 'minor':
+			name += 'm'
+			mid = root + 3
+			top = root + 7
+		elif quality == 'diminished':
+			name += 'dim'
+			mid = root + 3
+			top = root + 6
+		elif quality == 'augmented':
+			name += 'aug'
+			mid = root + 4
+			top = root + 8
+		else:
+			mid = root + 4
+			top = root + 7
+
+	if inv_str == '6':
+		root, mid, top = mid, top, root + 12
+		name = name + '6'
+	elif inv_str == '64':
+		root, mid, top = top - 12, root, mid
+		name = name + '64'
+	elif inv_str == '7':
+		top = root + (11 if major_seven else 10)
+		name = name + '7'
+	elif inv_str == '65':
+		root, mid, top = mid, root + (11 if major_seven else 10), root + 12
+		name = name + '65'
+	elif inv_str == '43':
+		root, mid, top = top - 12, root - (1 if major_seven else 2), root
+		name = name + '43'
+	elif inv_str == '24' or inv_str == '2':
+		root, mid, top = root - (1 if major_seven else 2), root, mid
+		name = name + '24'
+
+	root += final_semitone_shift
+	mid += final_semitone_shift
+	top += final_semitone_shift
+	if final_semitone_shift >= 0:
+		name = '#'*final_semitone_shift + name
+	else:
+		name = 'b'*(-final_semitone_shift) + name
+	return root, mid, top, name
+
+# chord_strs is a list of chord progressions represented flexibly as strings;
+# each number stands for one measure.
+# key is a list of strings representing the key, eg: ['c', 'major']
 # rhythm is a number stands for the fastest note in the progression eg: 120, 240, 480, 960
 
-def chord_generater(chord_degs, key, rhythm):
+
+def chord_generater(chord_strs, key, rhythm):
 	# type: (List[int], Tuple[str, str], int) -> ChordTemplate
 
-	if chord_degs == [1,2,7,6] and key == ('F', 'major') and rhythm == 960:
+	if chord_strs == ["1","2","7","6"] and key == ('F', 'major') and rhythm == 960:
 		return demo_chords.demo
 
 	key_root, key_mode = key
 	starting_note = pitch_dic[key_root]
 	if key_mode == 'major':
 		scale = MAJOR
-		numerals = MAJOR_NUMERALS
 	else:
 		scale = MINOR
-		numerals = MINOR_NUMERALS
 	all_notes = [starting_note + i for i in range(12)]
 	scale_notes = [starting_note + i for i in scale]
 	print(scale_notes)
@@ -83,11 +213,26 @@ def chord_generater(chord_degs, key, rhythm):
 	mid_line = []
 	root_line = []
 	names = []
-	for chord in chord_degs:
-		top_line.append(scale_notes[(chord + 3) % 7])
-		mid_line.append(scale_notes[(chord + 1) % 7])
-		root_line.append(scale_notes[(chord -1) % 7])
-		names.append(numerals[(chord - 1) % 7])
+	for chord in chord_strs:
+		try:
+			r, m, t, name = parse_chord(chord, starting_note, key_mode)
+		except Exception as e:
+			print(e)
+			r, m, t, name = parse_chord('1', starting_note, key_mode)
+		if root_line and not (min(root_line) <= r <= max(root_line)):
+			if r >= root_line[-1] + 7:
+				r -= 12
+				m -= 12
+				t -= 12
+			if r <= root_line[-1] - 7:
+				r += 12
+				m += 12
+				t += 12
+
+		top_line.append(t)
+		mid_line.append(m)
+		root_line.append(r)
+		names.append(name)
 
 	print("top notes", top_line)
 	print("mid notes", mid_line)
