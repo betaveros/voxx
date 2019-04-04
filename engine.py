@@ -184,15 +184,39 @@ class VoxxEngine(object):
 
         play_status = VoxxPlayStatus(scheduler)
 
-        def next_note_play(tick, melody_i):
-            melody, i = melody_i
-            synth.noteoff(CHORD_CHANNEL, melody[(i - 1)%len(melody)][1])
-            if play_status.stop_flag: return
-            synth.noteon(CHORD_CHANNEL, melody[i][1], gain_callback())
-            scheduler.post_at_tick(tick + melody[i][0], next_note_play, (melody, (i + 1) % (len(melody))))
+        def next_notes_play(tick, state):
+            line_progress, advance = state
+            # line_progress: List[Tuple[int, int]] # current index and elapsed time per note
+            # advance: int # how much time since last call
 
-        for line in self.lines:
-            next_note_play(scheduler.get_tick(), (line, 0))
+            if play_status.stop_flag:
+                for ((note_idx, _), line) in zip(line_progress, self.lines):
+                    synth.noteoff(CHORD_CHANNEL, line[note_idx][1])
+                return
+
+            new_advance = 1e9
+            notes_on = []
+
+            for i, ((note_idx, note_tick), line) in enumerate(zip(line_progress, self.lines)):
+                note_tick += advance
+                if advance == 0:
+                    notes_on.append(line[note_idx][1])
+                elif note_tick >= line[note_idx][0]:
+                    # advance == 0 signals we're starting new
+                    synth.noteoff(CHORD_CHANNEL, line[note_idx][1])
+                    note_idx = (note_idx + 1) % len(line)
+                    notes_on.append(line[note_idx][1])
+                    note_tick = 0
+                new_advance = min(new_advance, line[note_idx][0] - note_tick)
+                line_progress[i] = (note_idx, note_tick)
+
+            # need all note ons after all note offs
+            for note in notes_on:
+                synth.noteon(CHORD_CHANNEL, note, gain_callback())
+
+            scheduler.post_at_tick(tick + new_advance, next_notes_play, (line_progress, new_advance))
+
+        next_notes_play(scheduler.get_tick(), ([(0, 0)] * len(self.lines), 0))
 
         def next_text(tick, i):
             if play_status.stop_flag: return
@@ -237,15 +261,20 @@ class VoxxEngine(object):
             ret_data_list.append(synth_data)
 
             new_advance = 1e9
+            notes_on = []
             for i, ((note_idx, note_tick), line) in enumerate(zip(line_progress, self.lines)):
                 note_tick += advance
                 if note_tick >= line[note_idx][0]:
                     synth.noteoff(CHORD_CHANNEL, line[note_idx][1])
                     note_idx = (note_idx + 1) % len(line)
-                    synth.noteon(CHORD_CHANNEL, line[note_idx][1], chords_gain)
+                    notes_on.append(line[note_idx][1])
                     note_tick = 0
                 new_advance = min(new_advance, line[note_idx][0] - note_tick)
                 line_progress[i] = (note_idx, note_tick)
+
+            # need all note ons after all note offs
+            for note in notes_on:
+                synth.noteon(CHORD_CHANNEL, note, chords_gain)
 
             gen_ticks += advance
             advance = new_advance
