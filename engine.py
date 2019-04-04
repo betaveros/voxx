@@ -197,7 +197,7 @@ class VoxxEngine(object):
         def next_text(tick, i):
             if play_status.stop_flag: return
             dt = self.duration_texts[i]
-            text_callback(i, dt.text)
+            text_callback(i, len(self.duration_texts), dt.text)
             scheduler.post_at_tick(tick + dt.duration, next_text, (i + 1) % (len(self.duration_texts)))
 
         next_text(scheduler.get_tick(), 0)

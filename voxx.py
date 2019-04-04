@@ -117,128 +117,6 @@ class IOBuffer(object):
         self.buffer = None
         return tmp, True
 
-
-# looks at incoming audio data, detects onsets, and then a little later, classifies the onset as
-# "kick" or "snare"
-# calls callback function with message argument that is one of "onset", "kick", ""
-class OnsetDectior(object):
-    def __init__(self, callback):
-        super(OnsetDectior, self).__init__()
-        self.callback = callback
-
-        self.last_rms = 0
-        self.buffer = FIFOBuffer(4096)
-        self.win_size = 512 # window length for analysis
-        self.min_len = 0.1  # time (in seconds) between onset detection and classification of onset
-
-        self.cur_onset_length = 0 # counts in seconds
-        self.zc = 0               # zero-cross count
-
-        self.active = False # is an onset happening now
-
-    def write(self, signal):
-        # use FIFO Buffer to create same-sized windows for processing
-        self.buffer.write(signal)
-        while self.buffer.get_read_available() >= self.win_size:
-            data = self.buffer.read(self.win_size)
-            self._process_window(data)
-
-    # process a single window of audio, of length self.win_size
-    def _process_window(self, signal):
-        # only look at the difference between current RMS and last RMS
-        rms = np.sqrt(np.mean(signal ** 2))
-        delta = rms - self.last_rms
-        self.last_rms = rms
-
-        # if delta exceeds threshold and not active:
-        if not self.active and delta > 0.003:
-            self.callback('onset')
-            self.active = True
-            self.cur_onset_length = 0  # begin timing onset length
-            self.zc = 0                # begin counting zero-crossings
-
-        self.cur_onset_length += len(signal) / float(Audio.sample_rate)
-
-        # count and accumulate zero crossings:
-        zc = np.count_nonzero(signal[1:] * signal[:-1] < 0)
-        self.zc += zc
-
-        # it's classification time!
-        # classify based on a threshold value of the accumulated zero-crossings.
-        if self.active and self.cur_onset_length > self.min_len:
-            self.active = False
-            # print 'zero cross', self.zc
-            self.callback(('kick', 'snare')[self.zc > 200])
-
-
-# graphical display of a meter
-class MeterDisplay(InstructionGroup):
-    def __init__(self, pos, height, in_range, color):
-        super(MeterDisplay, self).__init__()
-
-        self.max_height = height
-        self.range = in_range
-
-        # dynamic rectangle for level display
-        self.rect = Rectangle(pos=(1,1), size=(50,self.max_height))
-
-        self.add(PushMatrix())
-        self.add(Translate(*pos))
-
-        # border
-        w = 52
-        h = self.max_height+2
-        self.add(Color(0,0,0))
-        self.add(Line(points=(0,0, 0,h, w,h, w,0, 0,0), width=2))
-
-        # meter
-        self.add(Color(*color))
-        self.add(self.rect)
-
-        self.add(PopMatrix())
-
-    def set(self, level):
-        h = np.interp(level, self.range, (0, self.max_height))
-        self.rect.size = (50, h)
-
-
-# graphical display of onsets as a growing (snare) or shrinking (kick) circle
-class OnsetDisplay(InstructionGroup):
-    def __init__(self, pos):
-        super(OnsetDisplay, self).__init__()
-
-        self.anim = None
-        self.start_sz = 100
-        self.time = 0
-
-        self.color = Color(1,1,1,1)
-        self.circle = CEllipse(cpos=(0,0), csize=(self.start_sz, self.start_sz))
-
-        self.add(PushMatrix())
-        self.add(Translate(*pos))
-        self.add(self.color)
-        self.add(self.circle)
-        self.add(PopMatrix())
-
-    def set_type(self, t):
-        print(t)
-        if t == 'kick':
-            self.anim = KFAnim((0, 1,1,1,1, self.start_sz), (0.5, 1,0,0,1, 0))
-        else:
-            self.anim = KFAnim((0, 1,1,1,1, self.start_sz), (0.5, 1,1,0,0, self.start_sz*2))
-
-    def on_update(self, dt):
-        if self.anim == None:
-            return True
-
-        self.time += dt
-        r,g,b,a,sz = self.anim.eval(self.time)
-        self.color.rgba = r,g,b,a
-        self.circle.csize = sz, sz
-
-        return self.anim.is_active(self.time)
-
-
 # continuous plotting and scrolling line
 class GraphDisplay(InstructionGroup):
     def __init__(self, pos, height, num_pts, in_range, color):
@@ -287,7 +165,51 @@ class GraphDisplayWidget(BaseWidget):
     def redraw(self, x, y):
         self.graph.set_pos(self.pos)
 
+class ChordBar(BaseWidget):
+    def __init__(self, **kwargs):
+        super(ChordBar, self).__init__(**kwargs)
+
+        # self.size = kwargs['size']
+        # self.pos = kwargs['pos']
+        self.bg_color = kwargs['bg_color']
+        self.fg_color = kwargs['fg_color']
+        self.bg_rect = Rectangle(size=self.size, pos=self.pos)
+        self.fg_rect = Rectangle(size=(0, 0), pos=self.pos)
+        g = InstructionGroup()
+        # g.add(PushMatrix())
+        g.add(Color(*self.bg_color))
+        g.add(self.bg_rect)
+        g.add(Color(*self.fg_color))
+        g.add(self.fg_rect)
+        # g.add(PopMatrix())
+        self.canvas.add(g)
+        self.index = None
+        self.total = None
+        self.bind(pos=self.redraw)
+
+    def set_chord(self, index, total):
+        self.index = index
+        self.total = total
+        self.recompute()
+
+    def recompute(self):
+        self.bg_rect.pos = self.pos
+        self.bg_rect.size = self.size
+        if self.index is None or self.total is None:
+            self.fg_rect.size = (0, 0)
+        else:
+            x, y = self.pos
+            w, h = self.size
+            self.fg_rect.pos = (x + self.index*(1.0*w/self.total), y)
+            self.fg_rect.size = (1.0*w/self.total, h)
+
+    def redraw(self, x, y):
+        self.recompute()
+
 class SegmentsDisplay(InstructionGroup):
+    """Displays a sequence of horizontal segments.
+
+    segments is a list of (value, length) pairs."""
     def __init__(self, pos, height, x_scale, segments, in_range, color):
         super(SegmentsDisplay, self).__init__()
 
@@ -840,12 +762,8 @@ class MainMainWidget1(ScreenManager):
 
         self.add_widget(screen)
 
-    def engine_text_callback(self, i, text):
-        for bar in self.chord_bars: bar.background_color = dark_teal
-        try:
-            self.chord_bars[i].background_color = coral
-        except:
-            pass
+    def engine_text_callback(self, i, total, text):
+        self.chord_bar.set_chord(i, total)
         self.engine_playing_text = text
         self.update_record_screen()
 
@@ -1075,7 +993,7 @@ class MainMainWidget1(ScreenManager):
         self.engine_status.stop()
         self.mixer.remove(self.layers_mixer)
         del self.layers_mixer
-        for bar in self.chord_bars: bar.background_color = dark_teal
+        self.chord_bar.set_chord(None, None)
 
     def new_layer(self, instance):
         self.cur_layer_index = None
@@ -1238,21 +1156,10 @@ class MainMainWidget1(ScreenManager):
         self.delete_button.bind(on_press=delete_layer)
         self.record_button.bind(on_press=record)
 
+        # FIXME
         #Make the chord bars below recording graph that shows which background chord you're on
-        self.nProgression = 4 #This needs to be passed on the total number of chords in the current progression
-        self.x_pos = []
-        self.chord_bars =[]
-        x_start = 0.12
-        x_end = 0.88
-
-        for i in range (self.nProgression):
-            bar_length = (x_end - x_start)/self.nProgression
-            self.x_pos.append(x_start + i * bar_length)
-            self.chord_bar = make_button('',bar_length, .05, self.x_pos[i], 0.5)
-            self.chord_bars.append(self.chord_bar)
-            screen.add_widget(self.chord_bars[i])
-
-
+        self.chord_bar = ChordBar(bg_color=dark_teal, fg_color=coral, size_hint=(0.76, 0.05), pos_hint={'x': 0.12, 'y': 0.5})
+        screen.add_widget(self.chord_bar)
 
         screen.add_widget(self.record_label)
         screen.add_widget(self.play_button)
