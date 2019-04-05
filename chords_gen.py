@@ -34,18 +34,22 @@ HALF = [[960, 960]]
 QUA = [[480, 480, 480, 480],[960, 480, 480], [480, 960, 480]]
 EIGHTH = [[480, 480, 240, 240, 240, 240], [480, 240, 480, 240, 240, 240], [480, 240, 480, 240, 480], [480, 240, 240, 240, 240, 240, 240], [240, 480, 240, 480, 240, 240], [480, 240, 240, 240, 240, 480], [480, 480, 240, 480, 240]]
 
-class LineTemplate(object):
+class RhythmTemplate(object):
 	"""key/chord-agnostic template for accompaniment. is randomized"""
 
-	def __init__(self, beats_per_measure, regular, dense, unison):
-		lines_res = LineTemplate.make_lines(beats_per_measure, regular, dense, unison)
-		if isinstance(lines_res, tuple):
-			lines_str = lines_res
-		else:
-			lines_str = random.choice(lines_res)
+	def __init__(self, lines):
+		# FIXME this is a really lame class now
+		self.lines = lines
+
+	@classmethod
+	def from_string(cls, beats_per_measure, s):
+		return cls(cls.lines_from_string(beats_per_measure, s))
+
+	@staticmethod
+	def lines_from_string(beats_per_measure, s):
 		one_beat = 1920 // beats_per_measure
 		lines = []
-		for line_str in lines_str.split():
+		for line_str in s.split():
 			res = [] # type: List[Tuple[bool, int]]
 			for c in line_str:
 				if c == 'x':
@@ -58,7 +62,17 @@ class LineTemplate(object):
 				else:
 					res[-1] = (res[-1][0], res[-1][1] + one_beat)
 			lines.append(res)
-		self.lines = lines
+		return lines
+
+	@classmethod
+	def randomize(cls, beats_per_measure, regular, dense, unison):
+		lines_res = RhythmTemplate.make_lines(beats_per_measure, regular, dense, unison)
+		print(beats_per_measure, regular, dense, unison, lines_res)
+		if isinstance(lines_res, tuple):
+			lines_str = random.choice(lines_res)
+		else:
+			lines_str = lines_res
+		return cls.from_string(beats_per_measure, lines_str)
 
 	@staticmethod
 	def make_lines(beat, regular, dense, unison):
@@ -146,6 +160,11 @@ class LineTemplate(object):
 						return ' '.join([two_seven, two_seven, two_seven])
 					else:
 						return ' '.join([two_seven, third_1, two_four_2])
+
+# the lengths we go to...
+class DemoRhythmTemplate(RhythmTemplate):
+	def __init__(self):
+		super(DemoRhythmTemplate, self).__init__(RhythmTemplate.lines_from_string(8, "xx.x--x- .x-x--.. .x-x--"))
 
 RHYTHM = {1920: WHOLE, 960: HALF, 480: QUA, 240: EIGHTH}
 
@@ -307,10 +326,10 @@ def parse_chord(chord_str, tonic, mode):
 # rhythm is a number stands for the fastest note in the progression eg: 120, 240, 480, 960
 
 
-def chord_generater(chord_strs, key, rhythm):
-	# type: (List[int], Tuple[str, str], int) -> ChordTemplate
+def chord_generater(chord_strs, key, rhythm_template):
+	# type: (List[int], Tuple[str, str], RhythmTemplate) -> ChordTemplate
 
-	if chord_strs == ["1","2","7","6"] and key == ('F', 'major') and rhythm == 960:
+	if chord_strs == ["1","2","7","6"] and key == ('F', 'major') and isinstance(rhythm_template, DemoRhythmTemplate):
 		return demo_chords.demo
 
 	key_root, key_mode = key
@@ -351,9 +370,7 @@ def chord_generater(chord_strs, key, rhythm):
 	print("mid notes", mid_line)
 	print("rt notes", root_line)
 
-	t_one_measure = RHYTHM[rhythm][random.randint(0, len(RHYTHM[rhythm]) -1 )]
-	m_one_measure = RHYTHM[rhythm][random.randint(0, len(RHYTHM[rhythm]) -1 )]
-	r_one_measure = RHYTHM[rhythm][random.randint(0, len(RHYTHM[rhythm]) -1 )]
+	r_one_measure, m_one_measure, t_one_measure = rhythm_template.lines
 
 	top_dur_pitch    = [] # type: List[Tuple[int, int]]
 	middle_dur_pitch = [] # type: List[Tuple[int, int]]
@@ -362,14 +379,14 @@ def chord_generater(chord_strs, key, rhythm):
 	duration_texts = [] # type: List[DurationText]
 	for x in range(len(top_line)):
 		note_total = 0
-		for note in t_one_measure:
-			top_dur_pitch.append((note, top_line[x]))
+		for is_on, note in t_one_measure:
+			top_dur_pitch.append((note, top_line[x] if is_on else 0))
 			note_total += note # this better be consistent!
-		for note in m_one_measure:
-			middle_dur_pitch.append((note, mid_line[x]))
+		for is_on, note in m_one_measure:
+			middle_dur_pitch.append((note, mid_line[x] if is_on else 0))
 
-		for note in r_one_measure:
-			root_dur_pitch.append((note, root_line[x]))
+		for is_on, note in r_one_measure:
+			root_dur_pitch.append((note, root_line[x] if is_on else 0))
 
 		pitch_dict = dict((m, 0) for m in all_notes)
 		for m in scale_notes: pitch_dict[m] = 1

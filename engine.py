@@ -10,7 +10,7 @@ from common.synth import *
 from collections import Counter
 
 import demo_chords
-from chords_gen import Chord, ChordTemplate
+from chords_gen import Chord, ChordTemplate, DemoRhythmTemplate
 
 import random
 from pitch_detector import PitchDetector
@@ -175,7 +175,8 @@ class VoxxEngine(object):
             self.lines = [demo_chords.baseline, demo_chords.guitar2, demo_chords.guitar3] # type: List[List[Tuple[int, int]]]
             self.duration_texts = demo_chords.texts # type: List[DurationText]
         else:
-            self.set_chord_template(ChordTemplate([1, 3, 6, 4, 2, 7], ('e', 'minor'), 240))
+            # FIXME? this is wrong??
+            self.set_chord_template(ChordTemplate([1, 3, 6, 4, 2, 7], ('e', 'minor'), DemoRhythmTemplate()))
         # self.note_instrument = 40 # violin
         self.chord_instrument = 24 # flute?
         self.bpm = 120
@@ -241,6 +242,48 @@ class VoxxEngine(object):
         partial = self.make_partial(pitch_snap, tick_unit, truncate)
         partial.append(buf.data, buf.get_num_channels())
         return partial.all_segments, partial.all_processed_segments
+
+    def render_chord_demo(self, bpm, chord_template):
+        synth = Synth('data/FluidR3_GM.sf2')
+        synth.program(CHORD_CHANNEL, 0, self.chord_instrument)
+
+        line_progress = [(0, 0)] * len(chord_template.lines)
+        gain = 100
+        gen_ticks = 0
+        advance = 1e9
+        ret_data_list = []
+
+        for line in chord_template.lines:
+            synth.noteon(CHORD_CHANNEL, line[0][1], gain)
+            advance = min(advance, line[0][0])
+
+        done = False
+        while not done:
+            cur_chunk_frames = frame_of_tick(bpm, gen_ticks + advance) - frame_of_tick(bpm, gen_ticks)
+            synth_data, continue_flag = synth.generate(cur_chunk_frames, 2)
+            ret_data_list.append(synth_data)
+
+            new_advance = 1e9
+            notes_on = []
+            for i, ((note_idx, note_tick), line) in enumerate(zip(line_progress, chord_template.lines)):
+                note_tick += advance
+                if note_tick >= line[note_idx][0]:
+                    synth.noteoff(CHORD_CHANNEL, line[note_idx][1])
+                    note_idx = (note_idx + 1) % len(line)
+                    if note_idx == 0: done = True
+                    notes_on.append(line[note_idx][1])
+                    note_tick = 0
+                new_advance = min(new_advance, line[note_idx][0] - note_tick)
+                line_progress[i] = (note_idx, note_tick)
+
+            # need all note ons after all note offs
+            for note in notes_on:
+                synth.noteon(CHORD_CHANNEL, note, gain)
+
+            gen_ticks += advance
+            advance = new_advance
+
+        return combine_buffers(ret_data_list)
 
     def render_chords(self, num_frames, chords_gain):
         synth = Synth('data/FluidR3_GM.sf2')

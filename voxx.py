@@ -320,6 +320,7 @@ class CoralButtonGroup(object):
     def __init__(self):
         super(CoralButtonGroup, self).__init__()
         self.pressed = None
+        self.cb = None
 
     def press(self, button):
         if self.pressed is None:
@@ -330,9 +331,13 @@ class CoralButtonGroup(object):
             button.background_color = coral
             self.pressed = button
 
+        if self.cb: self.cb()
+
     def clear_pressed(self):
         self.pressed.background_color = dark_teal
         self.pressed = None
+
+        if self.cb: self.cb()
 
     def make_button(self, text, size_hint_x, size_hint_y, pos_hint_x, pos_hint_y, font_size=font_size_for(90), callback=None):
         button = make_button(text, size_hint_x, size_hint_y, pos_hint_x, pos_hint_y, font_size)
@@ -341,6 +346,9 @@ class CoralButtonGroup(object):
             self.press(instance)
         button.bind(on_press=cur_press)
         return button
+
+    def bind_press(self, cb):
+        self.cb = cb
 
 def make_bg_button(text, size_hint_x, size_hint_y, pos_hint_x, pos_hint_y, font_size=font_size_for(80)):
     return make_button(text, size_hint_x, size_hint_y, pos_hint_x, pos_hint_y, font_size, color=black, bg_color=background)
@@ -487,15 +495,15 @@ class MainMainWidget1(ScreenManager):
                 color=(0, 0.5, 0.6, 1))
 
         mood_group = CoralButtonGroup()
-        def add_mood_button(name, sx, sy, px, py, chords, key, rhythm):
+        def add_mood_button(name, sx, sy, px, py, chords, key, rhythm_template):
             button = mood_group.make_button(name, sx, sy, px, py,
-                    callback=self.mood_callback(chords, key, rhythm))
+                    callback=self.mood_callback(chords, key, rhythm_template))
             screen.add_widget(button)
 
-        add_mood_button('Happy', .15, .15, .08, .4, [6, 4, 1, 5], ['C', 'major'], 240)
-        add_mood_button('Sad'  , .15, .15, .31, .4, [1, 7, 5, 4], ['C', 'minor'], 1920)
-        add_mood_button('Epic' , .15, .15, .54, .4, [4, 1, 6, 5], ['D', 'major'], 480)
-        add_mood_button('Chill', .15, .15, .77, .4, [1, 2, 7, 6], ['F', 'major'], 960)
+        add_mood_button('Happy', .15, .15, .08, .4, [6, 4, 1, 5], ['C', 'major'], chords_gen.RhythmTemplate.from_string(8, "x-xxxxxx x-xx-xx- x-xx-xx-"))
+        add_mood_button('Sad'  , .15, .15, .31, .4, [1, 7, 5, 4], ['C', 'minor'], chords_gen.RhythmTemplate.from_string(1, "x x x"))
+        add_mood_button('Epic' , .15, .15, .54, .4, [4, 1, 6, 5], ['D', 'major'], chords_gen.RhythmTemplate.from_string(4, "x-xx x-xx x--x"))
+        add_mood_button('Chill', .15, .15, .77, .4, [1, 2, 7, 6], ['F', 'major'], chords_gen.DemoRhythmTemplate())
 
         button_back = make_bg_button('Back', .1, .15, .01, .02)
         button_next = make_bg_button('Next', .1, .15, .89, .02)
@@ -609,7 +617,8 @@ class MainMainWidget1(ScreenManager):
                 size_hint=(.5, .1), pos_hint={'x':.4, 'y':.26})
         self.chords_input.bind(text=lambda instance, value: self.update_chord_template())
 
-        self.rhythm = 240 # TODO
+        # FIXME defaults are dangerous
+        self.rhythm_template = chords_gen.RhythmTemplate.randomize(8, regular=False, dense=False, unison=False)
 
         button_back = make_bg_button('Back', .1, .15, .01, .02)
         button_next = make_bg_button('Next', .1, .15, .89, .02)
@@ -641,6 +650,7 @@ class MainMainWidget1(ScreenManager):
         self.add_widget(screen)
 
     def make_rhythm_screen(self):
+        # FIXME
         screen = ScreenWithBackground('rhythm')
         label1 = Label(text='What rhythm would you like?',
                 font_size = font_size_for(120),
@@ -650,17 +660,50 @@ class MainMainWidget1(ScreenManager):
 
         label2 = Label(text='Select the fastest notes you want in your chord',
                 font_size = font_size_for(70),
-                size_hint=(.6, .2), pos_hint={'x':.2, 'y':.62},
+                size_hint=(.6, .2), pos_hint={'x':.2, 'y':.65},
                 font_name = 'fonts/Caveat-Regular.ttf',
                 color=dark_teal)
 
 
         self.speed_group = CoralButtonGroup()
-        button_slow = self.speed_group.make_button('Slow\n (1/4 note)',   .2, .25, .1, .32)
-        button_mid  = self.speed_group.make_button('Medium\n (1/8 note)', .2, .25, .4, .32)
-        button_fast = self.speed_group.make_button('Fast\n (1/16 note)',  .2, .25, .7, .32)
+        self.button_slow = self.speed_group.make_button('Slow\n(1/4 note)', .2, .22, .16, .48)
+        self.button_mid  = self.speed_group.make_button('Medium\n(1/8 note)', .2, .22, .39, .48)
+        self.button_fast = self.speed_group.make_button('Fast\n(1/16 note)', .2, .22, .62, .48)
 
-        button_preview = make_button('Preview', .2, .15, 0.41, 0.03)
+        self.regularity_group = CoralButtonGroup()
+        self.button_irregular = self.regularity_group.make_button('Irregular', .2, .1, .295, .35)
+        self.button_regular   = self.regularity_group.make_button('Regular',   .2, .1, .505, .35)
+
+        self.density_group = CoralButtonGroup()
+        self.button_sparse = self.density_group.make_button('Sparse', .2, .1, .295, .23)
+        self.button_dense  = self.density_group.make_button('Dense',  .2, .1, .505, .23)
+
+        self.unison_group = CoralButtonGroup()
+        self.button_staggered = self.unison_group.make_button('Staggered', .2, .1, .295, .11)
+        self.button_unison    = self.unison_group.make_button('Unison',    .2, .1, .505, .11)
+
+        for button in [self.button_slow, self.button_mid, self.button_fast, self.button_regular, self.button_irregular, self.button_dense, self.button_sparse, self.button_staggered, self.button_unison]:
+            screen.add_widget(button)
+
+        for group in [self.speed_group, self.regularity_group, self.density_group, self.unison_group]:
+            group.bind_press(self.update_rhythm_template)
+
+        button_preview = make_button('Preview', .2, .06, 0.4, 0.02)
+
+        def preview_rhythm(instance):
+            try:
+                bpm = int(self.bpm_input.text)
+            except ValueError:
+                print('bpm broken: ' + repr(self.bpm_input.text))
+                bpm = 120
+            chords = self.chords_input.text.split(',')[:1] or ["1"]
+
+            key_root = self.key_input.text.upper()
+            key_mode = 'minor' if self.mode_group.pressed == self.button_minor else 'major'
+
+            self.mixer.add(WaveGenerator(WaveArray(self.engine.render_chord_demo(bpm,
+                chords_gen.chord_generater(chords, (key_root, key_mode), self.rhythm_template)), 2)))
+        button_preview.bind(on_press=preview_rhythm)
 
         button_back = make_bg_button('Back', .1, .15, .01, .02)
 
@@ -669,12 +712,10 @@ class MainMainWidget1(ScreenManager):
         button_next.bind(on_press=self.go_to_callback('instrument'))
         button_back.bind(on_press=self.go_to_callback('input'))
 
+        # self.rhythm_template = RhythmTemplate(8, regular=False, dense=False, unison=False)
 
         screen.add_widget(label1)
         screen.add_widget(label2)
-        screen.add_widget(button_slow)
-        screen.add_widget(button_mid)
-        screen.add_widget(button_fast)
         screen.add_widget(button_preview)
         screen.add_widget(button_back)
         screen.add_widget(button_next)
@@ -943,6 +984,20 @@ class MainMainWidget1(ScreenManager):
         screen.add_widget(self.export_button)
         self.add_widget(screen)
 
+    def update_rhythm_template(self):
+        beat = 8
+        if self.speed_group.pressed == self.button_slow:
+            beat = 4
+        elif self.speed_group.pressed == self.button_fast:
+            beat = 16
+        self.rhythm_template = chords_gen.RhythmTemplate.randomize(
+                beats_per_measure = beat,
+                regular = self.regularity_group.pressed == self.button_regular,
+                dense = self.density_group.pressed == self.button_dense,
+                unison = self.unison_group.pressed == self.button_unison,
+                )
+        self.update_chord_template()
+
     def update_chord_template(self):
         # type: () -> None
         try:
@@ -958,7 +1013,7 @@ class MainMainWidget1(ScreenManager):
 
         self.engine.bpm = bpm
         self.tempo_map.bpm = bpm # !?!?
-        self.engine.set_chord_template(chords_gen.chord_generater(chords, (key_root, key_mode), self.rhythm))
+        self.engine.set_chord_template(chords_gen.chord_generater(chords, (key_root, key_mode), self.rhythm_template))
 
     def get_note_ticks(self):
         return (40, 60, 80, 120, 240)[int(round(self.layer_note_ticks_slider.value))]
@@ -1152,7 +1207,6 @@ class MainMainWidget1(ScreenManager):
         self.delete_button.bind(on_press=delete_layer)
         self.record_button.bind(on_press=record)
 
-        # FIXME
         #Make the chord bars below recording graph that shows which background chord you're on
         self.chord_bar = ChordBar(bg_color=dark_teal, fg_color=coral, size_hint=(0.76, 0.05), pos_hint={'x': 0.12, 'y': 0.5})
         screen.add_widget(self.chord_bar)
@@ -1197,7 +1251,7 @@ class MainMainWidget1(ScreenManager):
             self.current = name
         return callback
 
-    def mood_callback(self, chords, key, rhythm):
+    def mood_callback(self, chords, key, rhythm_template):
         def callback(button):
             self.chords_input.text = ','.join(str(c) for c in chords)
             key_bass, key_mode = key
@@ -1208,7 +1262,7 @@ class MainMainWidget1(ScreenManager):
                 self.mode_group.press(self.button_minor)
             else:
                 print('error! unrecognized mode: ' + repr(key_mode))
-            self.rhythm = rhythm
+            self.rhythm_template = rhythm_template
 
             for layer in self.layers:
                 layer.clear_cache()
