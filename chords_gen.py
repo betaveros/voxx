@@ -34,6 +34,81 @@ HALF = [[960, 960]]
 QUA = [[480, 480, 480, 480],[960, 480, 480], [480, 960, 480]]
 EIGHTH = [[480, 480, 240, 240, 240, 240], [480, 240, 480, 240, 240, 240], [480, 240, 480, 240, 480], [480, 240, 240, 240, 240, 240, 240], [240, 480, 240, 480, 240, 240], [480, 240, 240, 240, 240, 480], [480, 480, 240, 480, 240]]
 
+"""
+x-x-x--x
+x-x-x--x
+x-x-x--x
+
+x-x-xxxx
+x-x-xxxx
+x-x-xxxx
+
+x--x--x-
+x--x--x-
+x--x--x-
+
+.x-x--..
+.x-x--..
+xxxx--x-
+"""
+
+class LineTemplate(object):
+	"""key/chord-agnostic template for accompaniment. is randomized"""
+
+	@staticmethod
+	def make_lines(beat, dense, unison, regular):
+		# beat: 4|8|16
+		# dense: 0|1
+		# unison: 0|1
+		# regular: 0|1
+		# returns root, mid, top
+		if beat == 4:
+			if dense:
+				if unison:
+					if regular:
+						return "xxxx xxxx xxxx"
+					else:
+						return "xx.x xx.x xx.x"
+				else:
+					if regular:
+						return "xxx. x.xx x.xx"
+					else:
+						return "xx.x .xxx .xxx"
+			else:
+				if unison:
+					if regular:
+						return "xx.. xx.. xx.."
+					else:
+						return "x..x x..x x..x"
+				else:
+					if regular:
+						return "x.x. ..x. ..x."
+					else:
+						return "x..x .x.. ..x."
+		elif beat == 8:
+			if dense:
+				if unison:
+					if regular:
+						return "xxxxxxxx xxxxxxxx xxxxxxxx"
+					else:
+						return "x--x--x- x--x--x- x--x--x-"
+				else:
+					if regular:
+						return "xxx. x.xx x.xx"
+					else:
+						return "xx.x .xxx .xxx"
+			else:
+				if unison:
+					if regular:
+						return "xx.. xx.. xx.."
+					else:
+						return "x..x x..x x..x"
+				else:
+					if regular:
+						return "x.x. ..x. ..x."
+					else:
+						return "x..x .x.. ..x."
+
 RHYTHM = {1920: WHOLE, 960: HALF, 480: QUA, 240: EIGHTH}
 
 class Chord(object):
@@ -238,7 +313,9 @@ def chord_generater(chord_strs, key, rhythm):
 	print("mid notes", mid_line)
 	print("rt notes", root_line)
 
-	one_measure = RHYTHM[rhythm][random.randint(0, len(RHYTHM[rhythm]) -1 )]
+	t_one_measure = RHYTHM[rhythm][random.randint(0, len(RHYTHM[rhythm]) -1 )]
+	m_one_measure = RHYTHM[rhythm][random.randint(0, len(RHYTHM[rhythm]) -1 )]
+	r_one_measure = RHYTHM[rhythm][random.randint(0, len(RHYTHM[rhythm]) -1 )]
 
 	top_dur_pitch    = [] # type: List[Tuple[int, int]]
 	middle_dur_pitch = [] # type: List[Tuple[int, int]]
@@ -247,17 +324,21 @@ def chord_generater(chord_strs, key, rhythm):
 	duration_texts = [] # type: List[DurationText]
 	for x in range(len(top_line)):
 		note_total = 0
-		for note in one_measure:
+		for note in t_one_measure:
 			top_dur_pitch.append((note, top_line[x]))
+			note_total += note # this better be consistent!
+		for note in m_one_measure:
 			middle_dur_pitch.append((note, mid_line[x]))
+
+		for note in r_one_measure:
 			root_dur_pitch.append((note, root_line[x]))
-			pitch_dict = dict((m, 0) for m in all_notes)
-			for m in scale_notes: pitch_dict[m] = 1
-			pitch_dict[top_line[x]] = 2
-			pitch_dict[mid_line[x]] = 2
-			pitch_dict[root_line[x]] = 2
-			chords.append(Chord(note, pitch_dict))
-			note_total += note
+
+		pitch_dict = dict((m, 0) for m in all_notes)
+		for m in scale_notes: pitch_dict[m] = 1
+		pitch_dict[top_line[x]] = 2
+		pitch_dict[mid_line[x]] = 2
+		pitch_dict[root_line[x]] = 2
+		chords.append(Chord(note_total, pitch_dict))
 		duration_texts.append(DurationText(note_total, names[x]))
 
 	return ChordTemplate([top_dur_pitch, middle_dur_pitch, root_dur_pitch], chords, duration_texts)
