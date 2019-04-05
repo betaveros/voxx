@@ -34,80 +34,118 @@ HALF = [[960, 960]]
 QUA = [[480, 480, 480, 480],[960, 480, 480], [480, 960, 480]]
 EIGHTH = [[480, 480, 240, 240, 240, 240], [480, 240, 480, 240, 240, 240], [480, 240, 480, 240, 480], [480, 240, 240, 240, 240, 240, 240], [240, 480, 240, 480, 240, 240], [480, 240, 240, 240, 240, 480], [480, 480, 240, 480, 240]]
 
-"""
-x-x-x--x
-x-x-x--x
-x-x-x--x
-
-x-x-xxxx
-x-x-xxxx
-x-x-xxxx
-
-x--x--x-
-x--x--x-
-x--x--x-
-
-.x-x--..
-.x-x--..
-xxxx--x-
-"""
-
 class LineTemplate(object):
 	"""key/chord-agnostic template for accompaniment. is randomized"""
 
+	def __init__(self, beats_per_measure, regular, dense, unison):
+		lines_res = LineTemplate.make_lines(beats_per_measure, regular, dense, unison)
+		if isinstance(lines_res, tuple):
+			lines_str = lines_res
+		else:
+			lines_str = random.choice(lines_res)
+		one_beat = 1920 // beats_per_measure
+		lines = []
+		for line_str in lines_str.split():
+			res = [] # type: List[Tuple[bool, int]]
+			for c in line_str:
+				if c == 'x':
+					res.append((True, one_beat))
+				elif c == '.':
+					if res and not res[-1][0]:
+						res[-1] = (False, res[-1][1] + one_beat)
+					else:
+						res.append((False, one_beat))
+				else:
+					res[-1] = (res[-1][0], res[-1][1] + one_beat)
+			lines.append(res)
+		self.lines = lines
+
 	@staticmethod
-	def make_lines(beat, dense, unison, regular):
-		# beat: 4|8|16
+	def make_lines(beat, regular, dense, unison):
+		# beat: 4|8
 		# dense: 0|1
 		# unison: 0|1
 		# regular: 0|1
 		# returns root, mid, top
 		if beat == 4:
-			if dense:
-				if unison:
-					if regular:
-						return "xxxx xxxx xxxx"
+			if regular:
+				if dense:
+					if unison:
+						return ("xxxx xxxx xxxx", "xxx- xxx- xxx-", "x-xx x-xx x-xx")
 					else:
+						return ("x.x. xx.x x.x.", "x.x. ..x. .x.x", "xxxx .x.x x.x.")
+				else:
+					if unison:
+						return "xx.. xx.. xx.."
+					else:
+						return ("x-.. .x.. .x..", "x-.. .x.. x...")
+			else:
+				if dense:
+					if unison:
 						return "xx.x xx.x xx.x"
+					else:
+						return ("xx.x .xxx .xxx", "x..x .x.x xx..")
 				else:
-					if regular:
-						return "xxx. x.xx x.xx"
-					else:
-						return "xx.x .xxx .xxx"
-			else:
-				if unison:
-					if regular:
-						return "xx.. xx.. xx.."
-					else:
+					if unison:
 						return "x..x x..x x..x"
-				else:
-					if regular:
-						return "x.x. ..x. ..x."
 					else:
-						return "x..x .x.. ..x."
+						return ("x... ...x ..x.", "x... .x.. ...x", "x... ...x .x..")
 		elif beat == 8:
-			if dense:
-				if unison:
-					if regular:
-						return "xxxxxxxx xxxxxxxx xxxxxxxx"
+			if regular:
+				if dense:
+					if unison:
+						return ("xxxxxxxx xxxxxxxx xxxxxxxx", "xxx-xxx- xxx-xxx- xxx-xxx-", "xxxxx-x- xxxxx-x- xxxxx-x-", "x-x-xxxx x-x-xxxx x-x-xxxx", "x-xxxxxx x-xxxxxx x-xxxxxx")
 					else:
-						return "x--x--x- x--x--x- x--x--x-"
+						return ("xxxxxxxx x...x... x...x...", "xxx-xxx- x-..x-.. x-..x-..", "xxxxx-x- x---x--- x---x---", "x-x-xxxx x-x-x--- x-x-x---", "x-xxxxxx x------- x-------")
 				else:
-					if regular:
-						return "xxx. x.xx x.xx"
+					if unison:
+						return "xx..x... xx..x... xx..x..."
 					else:
-						return "xx.x .xxx .xxx"
+						return "x...x... ..xx..x. ..xx..x."
 			else:
-				if unison:
-					if regular:
-						return "xx.. xx.. xx.."
+				if dense:
+					if unison:
+						return ("x--x--x- x--x--x- x--x--x-", "x-xx-xx- x-xx-xx- x-xx-xx-", "x-xx-xxx x-xx-xxx x-xx-xxx", "xx-xx-xx xx-xx-xx xx-xx-xx", "x-x-xx-x x-x-xx-x x-x-xx-x")
 					else:
-						return "x..x x..x x..x"
+						return ("x--x--x- .x..x..x ..x..x.x", "x-xx-xx- x--x--x- x--x--x-", "x-xx-xxx x--x---- x--x----", "xx-xx-xx x--x--x- x--x--x-", "x-x-xx-x x-x--x-- x-x--x--", "x-xxxxxx x-xx-xx- x-xx-xx-")
 				else:
-					if regular:
-						return "x.x. ..x. ..x."
+					if unison:
+						return ("x....x.x x....x.x x....x.x", "x..x.x.. x..x.x.. x..x.x..")
 					else:
-						return "x..x .x.. ..x."
+						return ("x..x..x. ..x..x.. ..x..x..", "x..x..x. .x..x..x ..x..x..")
+		else:
+			solid = "x" * beat
+			second = ("x." * beat)[:beat]
+			two_four = ("xx.." * beat)[:beat]
+			two_four_2 = (".." + "xx.." * beat)[:beat]
+			third = ("x--" * beat)[:beat]
+			third_1 = ("." + "x--" * beat)[:beat]
+			third_2 = (".." + "x--" * beat)[:beat]
+			fourth = ("x..." * beat)[:beat]
+			fourth_hold = ("x..." * beat)[:beat]
+			two_seven = ("x....x." * beat)[:beat]
+			if regular:
+				if dense:
+					if unison:
+						return ' '.join([solid, solid, solid])
+					else:
+						return ' '.join([solid, fourth, fourth])
+				else:
+					if unison:
+						return ' '.join([two_four, two_four, two_four])
+					else:
+						return ' '.join([fourth_hold, two_four_2, two_four_2])
+			else:
+				if dense:
+					if unison:
+						return ' '.join([third, third, third])
+					else:
+						return ' '.join([third, third_1, third_2])
+				else:
+					if unison:
+						return ' '.join([two_seven, two_seven, two_seven])
+					else:
+						return ' '.join([two_seven, third_1, two_four_2])
 
 RHYTHM = {1920: WHOLE, 960: HALF, 480: QUA, 240: EIGHTH}
 
@@ -366,7 +404,8 @@ class MainWidget(BaseWidget) :
         # create the metronome:
         self.metro = Metronome(self.sched, self.synth)
 
-        progression = chord_generater([1, 3, 6, 4, 2, 7], ['e', 'minor'], 240)
+        chord_template = chord_generater("1 3 6 4 2 7".split(), ['E', 'minor'], 240)
+        progression = chord_template.lines
         # create a NoteSequencer:
         self.seq = NoteSequencer(self.sched, self.synth, 1, (0,0), progression[0])
         self.seq1 = NoteSequencer(self.sched, self.synth, 2, (0,0), progression[1])
