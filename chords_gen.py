@@ -213,7 +213,7 @@ def parse_chord(chord_str, tonic, mode):
 	major_seven = False
 
 	if not root_str: root_str = '1' # shrug
-	if root_str in 'nN': root_str = 'bII6' # shrug
+	if root_str in 'nN': root_str = 'bII'; inv_str = '6' # shrug
 
 	final_semitone_shift = 0
 	while len(root_str) >= 2 and root_str[0] == 'b':
