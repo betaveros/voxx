@@ -110,23 +110,23 @@ class RhythmTemplate(object):
 					if unison:
 						return ("xxxxxxxx xxxxxxxx xxxxxxxx", "xxx-xxx- xxx-xxx- xxx-xxx-", "xxxxx-x- xxxxx-x- xxxxx-x-", "x-x-xxxx x-x-xxxx x-x-xxxx", "x-xxxxxx x-xxxxxx x-xxxxxx")
 					else:
-						return ("xxxxxxxx x...x... x...x...", "xxx-xxx- x-..x-.. x-..x-..", "xxxxx-x- x---x--- x---x---", "x-x-xxxx x-x-x--- x-x-x---", "x-xxxxxx x------- x-------")
+						return ("xxxxxxxx x...x... x...x...", "xxx-xxx- x-..x-.. x-..x-..", "xxxxx-x- x---x--- x---x---", "x-x-xxxx x-x-x--- x-x-x---", "x-xxxxxx x------- x-------", "x-x-x-x- .x.x.x.x ..x-x-x-")
 				else:
 					if unison:
 						return "xx..x... xx..x... xx..x..."
 					else:
-						return "x...x... ..xx..x. ..xx..x."
+						return ("x...x... ..xx..x. ..xx..x.", "x---x--- ..x...x. ..x...x.", "x------- ..x-..x- ....x-..", "xx--xx-- ..x...x. ..x...x.")
 			else:
 				if dense:
 					if unison:
-						return ("x--x--x- x--x--x- x--x--x-", "x-xx-xx- x-xx-xx- x-xx-xx-", "x-xx-xxx x-xx-xxx x-xx-xxx", "xx-xx-xx xx-xx-xx xx-xx-xx", "x-x-xx-x x-x-xx-x x-x-xx-x")
+						return ("x--x--x- x--x--x- x--x--x-", "x-xx-xx- x-xx-xx- x-xx-xx-", "x-xx-xxx x-xx-xxx x-xx-xxx", "xx-xx-xx xx-xx-xx xx-xx-xx", "x-x-xx-x x-x-xx-x x-x-xx-x", "x-xx--x- x-xx--x- x-xx--x-")
 					else:
 						return ("x--x--x- .x..x..x ..x..x.x", "x-xx-xx- x--x--x- x--x--x-", "x-xx-xxx x--x---- x--x----", "xx-xx-xx x--x--x- x--x--x-", "x-x-xx-x x-x--x-- x-x--x--", "x-xxxxxx x-xx-xx- x-xx-xx-")
 				else:
 					if unison:
-						return ("x....x.x x....x.x x....x.x", "x..x.x.. x..x.x.. x..x.x..")
+						return ("x....x.x x....x.x x....x.x", "x..x.x.. x..x.x.. x..x.x..", "x.xx..x. x.xx..x. x.xx..x.", "x..x..x. x..x..x. x..x..x.")
 					else:
-						return ("x..x..x. ..x..x.. ..x..x..", "x..x..x. .x..x..x ..x..x..")
+						return ("x..x..x. ..x..x.. ..x..x..", "x--x--x- .x..x..x ..x..x..", "x.x..x.. .x.x..x. .x.x..x.", "xx.xx.x. .x..x.x. .x..x.x.", "x------- ..x--x-- ...x-.x-")
 		else:
 			solid = "x" * beat
 			second = ("x." * beat)[:beat]
