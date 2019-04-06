@@ -439,6 +439,7 @@ class MainMainWidget1(ScreenManager):
         self.engine_status = None
 
         self.mixer = Mixer()
+        self.mixer.set_gain(1)
         try:
             self.synth = Synth('data/FluidR3_GM.sf2')
         except Exception as e:
@@ -1025,6 +1026,7 @@ class MainMainWidget1(ScreenManager):
 
     def play_layers(self, layers, focus=None):
         self.layers_mixer = Mixer()
+        self.layers_mixer.set_gain(1)
         self.clear_segments_display()
         for layer in layers:
             raw_pitches, processed_pitches = layer.process_with(self.engine)
