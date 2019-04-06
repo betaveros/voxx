@@ -42,11 +42,11 @@ def snap_to_template(pitch, template, aggro):
     # template = (0, 2, 4, 5, 7, 9, 11, 12)
     if pitch == 0: return 0
     octave = 12 * (pitch // 12)
-    penalties = [min(2*aggro, 1), max(0, 2*aggro - 1), 0]
+    penalties = [min(1.5*aggro, 0.5*aggro + 0.5), max(0.5 * aggro, 1.5*aggro - 0.5), 0]
     # print(template, pitch, template, aggro)
     def key(pw):
         p, w = pw
-        return abs(p - (pitch - octave)) + 1.2 * penalties[w]
+        return abs(p - (pitch - octave)) + 2 * penalties[w]
     return int(octave + min(template, key=key)[0])
 
 def push_near(anchor, pitch, max_jump):
