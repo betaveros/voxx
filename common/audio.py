@@ -11,7 +11,10 @@
 from __future__ import print_function
 import pyaudio
 import numpy as np
-import common.core as core
+try:
+    import core
+except ImportError:
+    import common.core as core
 import time
 try: # python 2
     from ConfigParser import ConfigParser
